@@ -9,10 +9,13 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
@@ -90,7 +93,7 @@ public class jSSC_SerialFrame extends javax.swing.JFrame {
         buadRates_JCombo.setSelectedIndex(defaultBaudIndex);
 
         //Set the carret postion of the output to autoscroll
-        DefaultCaret caret = (DefaultCaret) recieved_JTextArea.getCaret();
+        DefaultCaret caret = (DefaultCaret) termLog_JTextArea.getCaret();
         caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
         //LinePainter linePainter = new LinePainter(recieved_JTextArea, caretLine);
 
@@ -102,7 +105,7 @@ public class jSSC_SerialFrame extends javax.swing.JFrame {
                     try {
                         byte buffer[] = connectedPort.readBytes(event.getEventValue());
                         String strIn = new String(buffer);
-                        recieved_JTextArea.append(strIn);
+                        termLog_JTextArea.append(strIn);
                     } catch (SerialPortException ex) {
                         System.out.println(ex);
                     }
@@ -183,7 +186,7 @@ public class jSSC_SerialFrame extends javax.swing.JFrame {
         clear_JButton = new javax.swing.JButton();
         recieve_JPannel = new javax.swing.JPanel();
         recieved_ScrollPane = new javax.swing.JScrollPane();
-        recieved_JTextArea = new javax.swing.JTextArea();
+        termLog_JTextArea = new javax.swing.JTextArea();
         send_JPannel = new javax.swing.JPanel();
         input_JPass = new javax.swing.JPasswordField();
         send_JButton = new javax.swing.JButton();
@@ -253,19 +256,19 @@ public class jSSC_SerialFrame extends javax.swing.JFrame {
 
         recieved_ScrollPane.setAutoscrolls(true);
 
-        recieved_JTextArea.setEditable(false);
-        recieved_JTextArea.setColumns(20);
-        recieved_JTextArea.addFocusListener(new java.awt.event.FocusAdapter() {
+        termLog_JTextArea.setEditable(false);
+        termLog_JTextArea.setColumns(20);
+        termLog_JTextArea.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusLost(java.awt.event.FocusEvent evt) {
-                recieved_JTextAreaFocusLost(evt);
+                termLog_JTextAreaFocusLost(evt);
             }
         });
-        recieved_JTextArea.addMouseListener(new java.awt.event.MouseAdapter() {
+        termLog_JTextArea.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                recieved_JTextAreaMouseClicked(evt);
+                termLog_JTextAreaMouseClicked(evt);
             }
         });
-        recieved_ScrollPane.setViewportView(recieved_JTextArea);
+        recieved_ScrollPane.setViewportView(termLog_JTextArea);
 
         javax.swing.GroupLayout recieve_JPannelLayout = new javax.swing.GroupLayout(recieve_JPannel);
         recieve_JPannel.setLayout(recieve_JPannelLayout);
@@ -425,13 +428,13 @@ public class jSSC_SerialFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Clear Button">
     private void clear_JButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clear_JButtonActionPerformed
         // TODO add your handling code here:
-        if(JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(rootPane, "Are you sure you want to clear all entries?",
+        if(JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(rootPane, "Are you sure you want to clear the terminal log?",
                 "Clear entries?",
                 JOptionPane.YES_NO_OPTION))
-            recieved_JTextArea.setText("");
+            termLog_JTextArea.setText("");
     }//GEN-LAST:event_clear_JButtonActionPerformed
+
     // </editor-fold>
-    //</editor-fold>
 
     private void send_JButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_send_JButtonActionPerformed
         // TODO add your handling code here:
@@ -472,7 +475,17 @@ public class jSSC_SerialFrame extends javax.swing.JFrame {
                     }
                     strToSee = replacement;
                 }
-                recieved_JTextArea.append(userMessagePreface + strToSee + "\n");
+                try {
+                    int lastLine = termLog_JTextArea.getLineCount() - 1;
+                    int beginOfLastLine = termLog_JTextArea.getLineStartOffset(lastLine);
+                    int endOfLastLine   = termLog_JTextArea.getLineEndOffset(lastLine);
+                    if (beginOfLastLine != endOfLastLine){
+                        termLog_JTextArea.append("\n");
+                    }
+                } catch (BadLocationException ex) {
+                    Logger.getLogger(jSSC_SerialFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                termLog_JTextArea.append(userMessagePreface + strToSee + "\n");
             } catch (SerialPortException ex) {
                 
                 System.out.println(ex);
@@ -486,16 +499,16 @@ public class jSSC_SerialFrame extends javax.swing.JFrame {
         updateAutoscroll();
     }//GEN-LAST:event_autoscroll_JCheckActionPerformed
 
-    private void recieved_JTextAreaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_recieved_JTextAreaMouseClicked
+    private void termLog_JTextAreaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_termLog_JTextAreaMouseClicked
         // TODO add your handling code here:
         if(!"Connect".equals(connect_JButton.getText()))
         updateAutoscroll();
-    }//GEN-LAST:event_recieved_JTextAreaMouseClicked
+    }//GEN-LAST:event_termLog_JTextAreaMouseClicked
 
-    private void recieved_JTextAreaFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_recieved_JTextAreaFocusLost
+    private void termLog_JTextAreaFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_termLog_JTextAreaFocusLost
         // TODO add your handling code here:
         updateAutoscroll();
-    }//GEN-LAST:event_recieved_JTextAreaFocusLost
+    }//GEN-LAST:event_termLog_JTextAreaFocusLost
 
     private void input_JPassActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_input_JPassActionPerformed
         inputFunction();
@@ -522,12 +535,12 @@ public class jSSC_SerialFrame extends javax.swing.JFrame {
    private void updateAutoscroll() {
         if (autoscroll_JCheck.isSelected()) {
             //Enable autoscrolling
-            recieved_JTextArea.setCaretPosition(recieved_JTextArea.getDocument().getLength());
-            DefaultCaret caret = (DefaultCaret) recieved_JTextArea.getCaret();
+            termLog_JTextArea.setCaretPosition(termLog_JTextArea.getDocument().getLength());
+            DefaultCaret caret = (DefaultCaret) termLog_JTextArea.getCaret();
             caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
         } else {
             //disable autoscrolling
-            DefaultCaret caret = (DefaultCaret) recieved_JTextArea.getCaret();
+            DefaultCaret caret = (DefaultCaret) termLog_JTextArea.getCaret();
             caret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
         }
     }
@@ -607,10 +620,10 @@ public class jSSC_SerialFrame extends javax.swing.JFrame {
     private javax.swing.JComboBox lineEnding_JCombo;
     private javax.swing.JComboBox portList_JCombo;
     private javax.swing.JPanel recieve_JPannel;
-    private javax.swing.JTextArea recieved_JTextArea;
     private javax.swing.JScrollPane recieved_ScrollPane;
     private javax.swing.JButton send_JButton;
     private javax.swing.JPanel send_JPannel;
+    private javax.swing.JTextArea termLog_JTextArea;
     // End of variables declaration//GEN-END:variables
     //</editor-fold>
 }
