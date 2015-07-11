@@ -21,11 +21,13 @@ String strIn = "\0";
 
 void setup() {
   pinMode(LED, OUTPUT);
-  digitalWrite(LED, HIGH);
+  digitalWrite(LED, LOW);
   Serial.begin(9600);
   Serial.setTimeout(1);
-  while (!Serial){
-    fadeLoop(LED, IN_OUT);//Wait for serial connection; Needed only for Leonardo
+  while (!Serial){ //Wait for serial connection; Needed only for Leonardo
+                   //I like that it forces the board to wait for a connection before moving on.
+                   //And I am using a Leonardo. Enjoy the light show.
+    fadeLoop(LED, IN_OUT);
   }
   Serial.println("Serial connected successfully");
 }
@@ -47,12 +49,14 @@ void morseDot(){
   digitalWrite(LED, HIGH);
   delay(MORSE_DOT);
   digitalWrite(LED, LOW);
+  Serial.print(".");
 }
 
 void morseDash(){
   digitalWrite(LED, HIGH);
   delay(MORSE_DASH);
   digitalWrite(LED, LOW);
+  Serial.print("-");
 }
 
 void toMorse(char c){
@@ -569,7 +573,6 @@ void toMorse(char c){
       Serial.print(c);
       Serial.println("\'");
   }
-    Serial.print(c);
     delay(MORSE_CHAR);
 }
 
@@ -581,12 +584,16 @@ void loop() {
   }
   strIn = Serial.readString();
   strIn.trim();
+  Serial.println("Start of message:");
   if(strIn.charAt(0) != '\0'){
     for(int i = 0; i < strIn.length(); i++){
       toMorse(strIn.charAt(i));
+      if(strIn.charAt(i) == ' ')
+        Serial.println("");
+      else
+        Serial.print(" ");
     }
   }
-  Serial.println();
-  Serial.println("End of message");
+  Serial.println("\nEnd of message");
   fadeLoop(LED, IN_OUT);
 }
