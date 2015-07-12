@@ -41,3 +41,11 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+/ArduinoInterfacing_RXTX/nbproject/private/
+/ArduinoInterfacing_JSerialComm/nbproject/private/
+/ArduinoInterfacing_JSSC/build/
+/ArduinoInterfacing_JSSC/dist/
+/ArduinoInterfacing_JSSC/nbproject/private/
+/Depricated_RXTX/nbproject/private/
+/Deprecated_RXTX/nbproject/private/
+/Deprecated_JSerialComm/nbproject/private/
