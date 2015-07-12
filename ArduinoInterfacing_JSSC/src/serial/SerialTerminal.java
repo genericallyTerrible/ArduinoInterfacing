@@ -441,12 +441,11 @@ public class SerialTerminal extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Clear Button">
     private void clear_JButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clear_JButtonActionPerformed
         // TODO add your handling code here:
-        if(!termLog_JTextArea.getText().equals("")){
+        if(!termLog_JTextArea.getText().equals(""))
             if(JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(rootPane, "Are you sure you want to clear the terminal log?",
                     "Clear entries?",
                     JOptionPane.YES_NO_OPTION))
                 termLog_JTextArea.setText("");
-        }
     }//GEN-LAST:event_clear_JButtonActionPerformed
 
     // </editor-fold>
