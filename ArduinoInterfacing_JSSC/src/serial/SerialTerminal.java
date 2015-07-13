@@ -5,6 +5,7 @@
  */
 package serial;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -31,7 +32,7 @@ public class SerialTerminal extends javax.swing.JFrame {
     
     public static SerialPort connectedPort;
 
-    private final String FRAME_TITLE = "Serial Terminal v0.01";
+    private final String FRAME_TITLE = "Serial Terminal v0.1";
     private final String USER_MESSAGE_PREFACE = "--> ";
     private final String CONNECT = "Connect";
     private final String DISCONNECT = "Disconnect";
@@ -54,11 +55,14 @@ public class SerialTerminal extends javax.swing.JFrame {
     private final Timer REFRESH_TIMER;
     //Creation of serialPortReader event listener
     private final SerialPortEventListener SERIAL_PORT_READER;
+    
+    private TermLog terminalLog;
 
     /**
      * Creates new form jSSC_SerialFrame
      */
     public SerialTerminal() {
+        //Attempt to garuntee a closed connection upon window close
         addWindowListener(new WindowAdapter(){
             @Override
             public void windowClosing(WindowEvent e)
@@ -74,22 +78,20 @@ public class SerialTerminal extends javax.swing.JFrame {
                 e.getWindow().dispose();
             }
         });
-        //Attempt to set L&F to system default
-//        try {
-//            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-//        } catch (Exception e) {
-//            System.out.println(e);
-//        }
 
         initComponents();
+        
+        //Instantiate and add the terminal log
+        this.terminalLog = new TermLog();
+        recievePannel_JPannel.add(terminalLog, BorderLayout.CENTER);
         
         //Set the frame title
         this.setTitle(FRAME_TITLE);
         
-        //Setup the password field as an input
+        //Setup the password field to display it's text (treat it like a regualr input)
         input_JPass.setEchoChar((char)0);
         
-        //Populate the devices combo box
+        //Populate the portList combo box
         portList = SerialPortList.getPortNames();
         if (portList.length > 0) {
             portList_JCombo.removeAllItems();
@@ -106,8 +108,7 @@ public class SerialTerminal extends javax.swing.JFrame {
         buadRates_JCombo.setSelectedIndex(DEFAULT_BAUD_INDEX);
 
         //Set the carret postion of the output to autoscroll
-        DefaultCaret caret = (DefaultCaret) termLog_JTextArea.getCaret();
-        caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+        terminalLog.setAutoscroll(true);
         //LinePainter linePainter = new LinePainter(recieved_JTextArea, caretLine);
 
         //Setup for the timer
@@ -118,7 +119,7 @@ public class SerialTerminal extends javax.swing.JFrame {
                     try {
                         byte buffer[] = connectedPort.readBytes(event.getEventValue());
                         String strIn = new String(buffer);
-                        termLog_JTextArea.append(strIn);
+                        terminalLog.append(strIn);
                     } catch (SerialPortException ex) {
                         System.out.println(ex);
                     }
@@ -157,7 +158,7 @@ public class SerialTerminal extends javax.swing.JFrame {
                     }
                     portList_JCombo.setSelectedItem(selectedItem);
                 }
-                if("Connect".equals(connect_JButton.getText())){
+                if(CONNECT.equals(connect_JButton.getText())){
                     buttonSetAvailableConnections();
                 }
             } else {
@@ -197,9 +198,7 @@ public class SerialTerminal extends javax.swing.JFrame {
         buadRates_JCombo = new javax.swing.JComboBox();
         connect_JButton = new javax.swing.JButton();
         clear_JButton = new javax.swing.JButton();
-        recieve_JPannel = new javax.swing.JPanel();
-        recieved_ScrollPane = new javax.swing.JScrollPane();
-        termLog_JTextArea = new javax.swing.JTextArea();
+        recievePannel_JPannel = new javax.swing.JPanel();
         send_JPannel = new javax.swing.JPanel();
         input_JPass = new javax.swing.JPasswordField();
         send_JButton = new javax.swing.JButton();
@@ -241,7 +240,7 @@ public class SerialTerminal extends javax.swing.JFrame {
             connect_JPannelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, connect_JPannelLayout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(portList_JCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(portList_JCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(buadRates_JCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
@@ -267,34 +266,20 @@ public class SerialTerminal extends javax.swing.JFrame {
 
         connect_JPannelLayout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {buadRates_JCombo, clear_JButton, connect_JButton, portList_JCombo});
 
-        recieved_ScrollPane.setAutoscrolls(true);
-
-        termLog_JTextArea.setEditable(false);
-        termLog_JTextArea.setColumns(20);
-        termLog_JTextArea.addFocusListener(new java.awt.event.FocusAdapter() {
+        recievePannel_JPannel.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusLost(java.awt.event.FocusEvent evt) {
-                termLog_JTextAreaFocusLost(evt);
+                recievePannel_JPannelFocusLost(evt);
             }
         });
-        termLog_JTextArea.addMouseListener(new java.awt.event.MouseAdapter() {
+        recievePannel_JPannel.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                termLog_JTextAreaMouseClicked(evt);
+                recievePannel_JPannelMouseClicked(evt);
             }
         });
-        recieved_ScrollPane.setViewportView(termLog_JTextArea);
-
-        javax.swing.GroupLayout recieve_JPannelLayout = new javax.swing.GroupLayout(recieve_JPannel);
-        recieve_JPannel.setLayout(recieve_JPannelLayout);
-        recieve_JPannelLayout.setHorizontalGroup(
-            recieve_JPannelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(recieved_ScrollPane)
-        );
-        recieve_JPannelLayout.setVerticalGroup(
-            recieve_JPannelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(recieved_ScrollPane, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 221, Short.MAX_VALUE)
-        );
+        recievePannel_JPannel.setLayout(new java.awt.BorderLayout());
 
         input_JPass.setText("Type your message here...");
+        input_JPass.setEnabled(false);
         input_JPass.setPreferredSize(new java.awt.Dimension(134, 25));
         input_JPass.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
@@ -320,6 +305,7 @@ public class SerialTerminal extends javax.swing.JFrame {
 
         autoscroll_JCheck.setSelected(true);
         autoscroll_JCheck.setText("Autoscroll");
+        autoscroll_JCheck.setEnabled(false);
         autoscroll_JCheck.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 autoscroll_JCheckActionPerformed(evt);
@@ -327,6 +313,7 @@ public class SerialTerminal extends javax.swing.JFrame {
         });
 
         hideInput_JCheck.setText("Hide input");
+        hideInput_JCheck.setEnabled(false);
         hideInput_JCheck.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 hideInput_JCheckActionPerformed(evt);
@@ -335,6 +322,11 @@ public class SerialTerminal extends javax.swing.JFrame {
 
         lineEnding_JCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "No line ending", "\"/n\"", "\"/r\"", "\"/r/n\"" }));
         lineEnding_JCombo.setEnabled(false);
+        lineEnding_JCombo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                lineEnding_JComboActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout send_JPannelLayout = new javax.swing.GroupLayout(send_JPannel);
         send_JPannel.setLayout(send_JPannelLayout);
@@ -374,7 +366,7 @@ public class SerialTerminal extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(recieve_JPannel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(recievePannel_JPannel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(send_JPannel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(connect_JPannel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
@@ -383,7 +375,7 @@ public class SerialTerminal extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addComponent(connect_JPannel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
-                .addComponent(recieve_JPannel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(recievePannel_JPannel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(0, 0, 0)
                 .addComponent(send_JPannel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
@@ -441,11 +433,11 @@ public class SerialTerminal extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Clear Button">
     private void clear_JButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clear_JButtonActionPerformed
         // TODO add your handling code here:
-        if(!termLog_JTextArea.getText().equals(""))
+        if(!terminalLog.isEmpty())
             if(JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(rootPane, "Are you sure you want to clear the terminal log?",
                     "Clear entries?",
                     JOptionPane.YES_NO_OPTION))
-                termLog_JTextArea.setText("");
+                terminalLog.clearText();
     }//GEN-LAST:event_clear_JButtonActionPerformed
 
     // </editor-fold>
@@ -459,50 +451,46 @@ public class SerialTerminal extends javax.swing.JFrame {
         updateAutoscroll();
         String strToSee = String.valueOf(input_JPass.getPassword());
         String strToSend = strToSee;
-        if(strToSee.equals("")){
+        if(strToSee.equals("") && (lineEnding_JCombo.getSelectedIndex() == 0)){
             //Prompt about sending an empty string
-            
-        }
-        input_JPass.setText("");
-        
-        int lineEndingChoice = lineEnding_JCombo.getSelectedIndex();
-        switch (lineEndingChoice) {
-            case 0:
-                break;
-            case 1:
-                strToSend += "\n";
-                break;
-            case 2:
-                strToSend += "\r";
-                break;
-            case 3:
-                strToSend += "\r\n";
-                break;
-        }
-        if(connectedPort.isOpened()){
-            try {
-                connectedPort.writeString(strToSend);
-                if(hideInput_JCheck.isSelected()){
-                    String replacement = "";
-                    for(int i = 0; i < strToSee.length(); i++){
-                        replacement += ECHO_CHAR;
-                    }
-                    strToSee = replacement;
-                }
+            if(JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(rootPane, "You've entered nothing. Would you like to select a line ending?",
+                    "Nothing entered",
+                    JOptionPane.YES_NO_OPTION)){
+                lineEnding_JCombo.requestFocus();
+                lineEnding_JCombo.showPopup();
+            }
+        } else {
+            if(strToSee.equals(""))
+                strToSee = (String)lineEnding_JCombo.getSelectedItem();
+            input_JPass.setText("");
+            int lineEndingChoice = lineEnding_JCombo.getSelectedIndex();
+            switch (lineEndingChoice) {
+                case 0:
+                    break;
+                case 1:
+                    strToSend += "\n";
+                    break;
+                case 2:
+                    strToSend += "\r";
+                    break;
+                case 3:
+                    strToSend += "\r\n";
+                    break;
+            }
+            if(connectedPort.isOpened()){
                 try {
-                    int lastLine = termLog_JTextArea.getLineCount() - 1;
-                    int beginOfLastLine = termLog_JTextArea.getLineStartOffset(lastLine);
-                    int endOfLastLine   = termLog_JTextArea.getLineEndOffset(lastLine);
-                    if (beginOfLastLine != endOfLastLine){
-                        termLog_JTextArea.append("\n");
+                    connectedPort.writeString(strToSend);
+                    if(hideInput_JCheck.isSelected()){
+                        String replacement = "";
+                        for(int i = 0; i < strToSee.length(); i++){
+                            replacement += ECHO_CHAR;
+                        }
+                        strToSee = replacement;
                     }
-                } catch (BadLocationException ex) {
-                    Logger.getLogger(SerialTerminal.class.getName()).log(Level.SEVERE, null, ex);
+                    terminalLog.appendOnNewLine(USER_MESSAGE_PREFACE + strToSee + "\n");
+                } catch (SerialPortException ex) {
+                    System.out.println(ex);
                 }
-                termLog_JTextArea.append(USER_MESSAGE_PREFACE + strToSee + "\n");
-            } catch (SerialPortException ex) {
-                
-                System.out.println(ex);
             }
         }
     }
@@ -512,17 +500,6 @@ public class SerialTerminal extends javax.swing.JFrame {
         // TODO add your handling code here:
         updateAutoscroll();
     }//GEN-LAST:event_autoscroll_JCheckActionPerformed
-
-    private void termLog_JTextAreaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_termLog_JTextAreaMouseClicked
-        // TODO add your handling code here:
-        if(DISCONNECT.equals(connect_JButton.getText()))
-        updateAutoscroll();
-    }//GEN-LAST:event_termLog_JTextAreaMouseClicked
-
-    private void termLog_JTextAreaFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_termLog_JTextAreaFocusLost
-        // TODO add your handling code here:
-        updateAutoscroll();
-    }//GEN-LAST:event_termLog_JTextAreaFocusLost
 
     private void input_JPassActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_input_JPassActionPerformed
         inputFunction();
@@ -537,7 +514,6 @@ public class SerialTerminal extends javax.swing.JFrame {
     }//GEN-LAST:event_input_JPassFocusGained
 
     private void hideInput_JCheckActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_hideInput_JCheckActionPerformed
-        // TODO add your handling code here:
         if(hideInput_JCheck.isSelected()){
             input_JPass.setEchoChar(ECHO_CHAR);
         } else {
@@ -546,17 +522,21 @@ public class SerialTerminal extends javax.swing.JFrame {
         input_JPass.requestFocus();
     }//GEN-LAST:event_hideInput_JCheckActionPerformed
 
+    private void recievePannel_JPannelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_recievePannel_JPannelMouseClicked
+        if(DISCONNECT.equals(connect_JButton.getText()))
+        updateAutoscroll();
+    }//GEN-LAST:event_recievePannel_JPannelMouseClicked
+
+    private void recievePannel_JPannelFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_recievePannel_JPannelFocusLost
+        updateAutoscroll();
+    }//GEN-LAST:event_recievePannel_JPannelFocusLost
+
+    private void lineEnding_JComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lineEnding_JComboActionPerformed
+        input_JPass.requestFocus();
+    }//GEN-LAST:event_lineEnding_JComboActionPerformed
+
    private void updateAutoscroll() {
-        if (autoscroll_JCheck.isSelected()) {
-            //Enable autoscrolling
-            termLog_JTextArea.setCaretPosition(termLog_JTextArea.getDocument().getLength());
-            DefaultCaret caret = (DefaultCaret) termLog_JTextArea.getCaret();
-            caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-        } else {
-            //disable autoscrolling
-            DefaultCaret caret = (DefaultCaret) termLog_JTextArea.getCaret();
-            caret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
-        }
+        terminalLog.setAutoscroll(autoscroll_JCheck.isSelected());
     }
     // </editor-fold>
 
@@ -566,10 +546,10 @@ public class SerialTerminal extends javax.swing.JFrame {
         connect_JButton.setEnabled(newState);
         clear_JButton.setEnabled(true);
         input_JPass.setEnabled(newState);
+        autoscroll_JCheck.setEnabled(newState);
         hideInput_JCheck.setEnabled(newState);
         send_JButton.setEnabled(newState);
         lineEnding_JCombo.setEnabled(newState);
-        autoscroll_JCheck.setEnabled(true);
     }
 
     private void buttonSetAvailableConnections() {
@@ -577,10 +557,10 @@ public class SerialTerminal extends javax.swing.JFrame {
         buadRates_JCombo.setEnabled(true);
         connect_JButton.setEnabled(true);
         input_JPass.setEnabled(false);
+        autoscroll_JCheck.setEnabled(false);
         hideInput_JCheck.setEnabled(false);
         send_JButton.setEnabled(false);
         lineEnding_JCombo.setEnabled(false);
-        autoscroll_JCheck.setEnabled(true);
     }
 
     private void buttonSetConnected() {
@@ -588,10 +568,10 @@ public class SerialTerminal extends javax.swing.JFrame {
         buadRates_JCombo.setEnabled(false);
         connect_JButton.setEnabled(true);
         input_JPass.setEnabled(true);
+        autoscroll_JCheck.setEnabled(true);
         hideInput_JCheck.setEnabled(true);
         send_JButton.setEnabled(true);
         lineEnding_JCombo.setEnabled(true);
-        autoscroll_JCheck.setEnabled(true);
     }
 
     /**
@@ -634,11 +614,9 @@ public class SerialTerminal extends javax.swing.JFrame {
     private javax.swing.JPasswordField input_JPass;
     private javax.swing.JComboBox lineEnding_JCombo;
     private javax.swing.JComboBox portList_JCombo;
-    private javax.swing.JPanel recieve_JPannel;
-    private javax.swing.JScrollPane recieved_ScrollPane;
+    private javax.swing.JPanel recievePannel_JPannel;
     private javax.swing.JButton send_JButton;
     private javax.swing.JPanel send_JPannel;
-    private javax.swing.JTextArea termLog_JTextArea;
     // End of variables declaration//GEN-END:variables
     //</editor-fold>
 }

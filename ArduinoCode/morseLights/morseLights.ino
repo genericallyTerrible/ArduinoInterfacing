@@ -20,7 +20,7 @@ String strIn = "\0";
 
 void setup() {
   pinMode(LED, OUTPUT);
-  digitalWrite(LED, LOW);
+  analogWrite(LED, 0);
   Serial.begin(9600);
   Serial.setTimeout(1);
   while (!Serial){ //Wait for serial connection; Needed only for Leonardo
@@ -45,16 +45,16 @@ void fadeLoop(int pwmPin, boolean dir){
 }
 
 void morseDot(){
-  digitalWrite(LED, HIGH);
+  analogWrite(LED, 255);
   delay(MORSE_DOT);
-  digitalWrite(LED, LOW);
+  analogWrite(LED, 0);
   Serial.print(".");
 }
 
 void morseDash(){
-  digitalWrite(LED, HIGH);
+  analogWrite(LED, 255);
   delay(MORSE_DASH);
-  digitalWrite(LED, LOW);
+  analogWrite(LED, 0);
   Serial.print("-");
 }
 
@@ -577,7 +577,7 @@ void toMorse(char c){
 
 void loop() {
   Serial.println("Input a String to be displayed out as morse code");
-  digitalWrite(LED, LOW);
+  analogWrite(LED, 0);
   while(!Serial.available()){
     ;
   }

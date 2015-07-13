@@ -28,7 +28,7 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Component id="recieve_JPannel" max="32767" attributes="0"/>
+          <Component id="recievePannel_JPannel" max="32767" attributes="0"/>
           <Component id="send_JPannel" alignment="0" max="32767" attributes="0"/>
           <Component id="connect_JPannel" alignment="1" max="32767" attributes="0"/>
       </Group>
@@ -38,7 +38,7 @@
           <Group type="102" alignment="1" attributes="0">
               <Component id="connect_JPannel" min="-2" max="-2" attributes="0"/>
               <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
-              <Component id="recieve_JPannel" max="32767" attributes="0"/>
+              <Component id="recievePannel_JPannel" max="32767" attributes="0"/>
               <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
               <Component id="send_JPannel" min="-2" max="-2" attributes="0"/>
           </Group>
@@ -53,8 +53,8 @@
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" alignment="1" attributes="0">
                   <EmptySpace max="32767" attributes="0"/>
-                  <Component id="portList_JCombo" min="-2" pref="115" max="-2" attributes="0"/>
-                  <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
+                  <Component id="portList_JCombo" min="-2" pref="134" max="-2" attributes="0"/>
+                  <EmptySpace type="separate" max="-2" attributes="0"/>
                   <Component id="buadRates_JCombo" min="-2" pref="112" max="-2" attributes="0"/>
                   <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
                   <Component id="connect_JButton" linkSize="7" min="-2" pref="98" max="-2" attributes="0"/>
@@ -124,44 +124,13 @@
         </Component>
       </SubComponents>
     </Container>
-    <Container class="javax.swing.JPanel" name="recieve_JPannel">
+    <Container class="javax.swing.JPanel" name="recievePannel_JPannel">
+      <Events>
+        <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="recievePannel_JPannelFocusLost"/>
+        <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="recievePannel_JPannelMouseClicked"/>
+      </Events>
 
-      <Layout>
-        <DimensionLayout dim="0">
-          <Group type="103" groupAlignment="0" attributes="0">
-              <Component id="recieved_ScrollPane" max="32767" attributes="0"/>
-          </Group>
-        </DimensionLayout>
-        <DimensionLayout dim="1">
-          <Group type="103" groupAlignment="0" attributes="0">
-              <Component id="recieved_ScrollPane" alignment="1" pref="221" max="32767" attributes="0"/>
-          </Group>
-        </DimensionLayout>
-      </Layout>
-      <SubComponents>
-        <Container class="javax.swing.JScrollPane" name="recieved_ScrollPane">
-          <Properties>
-            <Property name="autoscrolls" type="boolean" value="true"/>
-          </Properties>
-          <AuxValues>
-            <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
-          </AuxValues>
-
-          <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
-          <SubComponents>
-            <Component class="javax.swing.JTextArea" name="termLog_JTextArea">
-              <Properties>
-                <Property name="editable" type="boolean" value="false"/>
-                <Property name="columns" type="int" value="20"/>
-              </Properties>
-              <Events>
-                <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="termLog_JTextAreaFocusLost"/>
-                <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="termLog_JTextAreaMouseClicked"/>
-              </Events>
-            </Component>
-          </SubComponents>
-        </Container>
-      </SubComponents>
+      <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout"/>
     </Container>
     <Container class="javax.swing.JPanel" name="send_JPannel">
 
@@ -211,6 +180,7 @@
         <Component class="javax.swing.JPasswordField" name="input_JPass">
           <Properties>
             <Property name="text" type="java.lang.String" value="Type your message here..."/>
+            <Property name="enabled" type="boolean" value="false"/>
             <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
               <Dimension value="[134, 25]"/>
             </Property>
@@ -234,6 +204,7 @@
           <Properties>
             <Property name="selected" type="boolean" value="true"/>
             <Property name="text" type="java.lang.String" value="Autoscroll"/>
+            <Property name="enabled" type="boolean" value="false"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="autoscroll_JCheckActionPerformed"/>
@@ -242,6 +213,7 @@
         <Component class="javax.swing.JCheckBox" name="hideInput_JCheck">
           <Properties>
             <Property name="text" type="java.lang.String" value="Hide input"/>
+            <Property name="enabled" type="boolean" value="false"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="hideInput_JCheckActionPerformed"/>
@@ -259,6 +231,9 @@
             </Property>
             <Property name="enabled" type="boolean" value="false"/>
           </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="lineEnding_JComboActionPerformed"/>
+          </Events>
         </Component>
       </SubComponents>
     </Container>
