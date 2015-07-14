@@ -53,6 +53,7 @@ public class SerialTerminal extends javax.swing.JFrame {
     private String[] portList;
     private SerialPort connectedPort;
     private TermLog terminalLog;
+    private LineChart dataChart;
     //</editor-fold>
 
     /**
@@ -79,9 +80,11 @@ public class SerialTerminal extends javax.swing.JFrame {
         initComponents();
         //<editor-fold defaultstate="collapsed" desc="Component Setup">
         //Instantiate and add the terminal log
-        this.terminalLog = new TermLog();
-        recievePannel_JPannel.add(terminalLog, BorderLayout.CENTER);
-
+        terminalLog = new TermLog();
+        logPanel.add(terminalLog);
+        dataChart = new LineChart("Data in", "Samples", "Value", MAX_GRAPH_POINTS);
+        chartPanel.add(dataChart, BorderLayout.CENTER);
+        
         //Set the frame title
         this.setTitle(FRAME_TITLE);
 
@@ -199,7 +202,9 @@ public class SerialTerminal extends javax.swing.JFrame {
         buadRates_JCombo = new javax.swing.JComboBox();
         connect_JButton = new javax.swing.JButton();
         clear_JButton = new javax.swing.JButton();
-        recievePannel_JPannel = new javax.swing.JPanel();
+        jSplitPane1 = new javax.swing.JSplitPane();
+        logPanel = new javax.swing.JPanel();
+        chartPanel = new javax.swing.JPanel();
         send_JPannel = new javax.swing.JPanel();
         input_JPass = new javax.swing.JPasswordField();
         send_JButton = new javax.swing.JButton();
@@ -209,9 +214,9 @@ public class SerialTerminal extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Serial Terminal v0.01");
-        setMinimumSize(new java.awt.Dimension(525, 343));
+        setMinimumSize(new java.awt.Dimension(525, 400));
         setName("serialJFrame"); // NOI18N
-        setPreferredSize(new java.awt.Dimension(525, 343));
+        setPreferredSize(new java.awt.Dimension(525, 400));
 
         portList_JCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "No devices found" }));
         portList_JCombo.setEnabled(false);
@@ -241,7 +246,7 @@ public class SerialTerminal extends javax.swing.JFrame {
         connect_JPannelLayout.setHorizontalGroup(
             connect_JPannelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, connect_JPannelLayout.createSequentialGroup()
-                .addContainerGap(18, Short.MAX_VALUE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(portList_JCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(buadRates_JCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -268,20 +273,24 @@ public class SerialTerminal extends javax.swing.JFrame {
 
         connect_JPannelLayout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {buadRates_JCombo, clear_JButton, connect_JButton, portList_JCombo});
 
-        recievePannel_JPannel.setMinimumSize(new java.awt.Dimension(160, 15));
-        recievePannel_JPannel.setName(""); // NOI18N
-        recievePannel_JPannel.setPreferredSize(new java.awt.Dimension(160, 15));
-        recievePannel_JPannel.addFocusListener(new java.awt.event.FocusAdapter() {
+        logPanel.setLayout(new java.awt.BorderLayout());
+        jSplitPane1.setLeftComponent(logPanel);
+
+        chartPanel.setMinimumSize(new java.awt.Dimension(160, 15));
+        chartPanel.setName(""); // NOI18N
+        chartPanel.setPreferredSize(new java.awt.Dimension(160, 15));
+        chartPanel.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusLost(java.awt.event.FocusEvent evt) {
-                recievePannel_JPannelFocusLost(evt);
+                chartPanelFocusLost(evt);
             }
         });
-        recievePannel_JPannel.addMouseListener(new java.awt.event.MouseAdapter() {
+        chartPanel.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                recievePannel_JPannelMouseClicked(evt);
+                chartPanelMouseClicked(evt);
             }
         });
-        recievePannel_JPannel.setLayout(new java.awt.BorderLayout());
+        chartPanel.setLayout(new java.awt.BorderLayout());
+        jSplitPane1.setRightComponent(chartPanel);
 
         input_JPass.setText("Type your message here...");
         input_JPass.setEnabled(false);
@@ -371,17 +380,17 @@ public class SerialTerminal extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(recievePannel_JPannel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(send_JPannel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(connect_JPannel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jSplitPane1)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addComponent(connect_JPannel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0)
-                .addComponent(recievePannel_JPannel, javax.swing.GroupLayout.DEFAULT_SIZE, 221, Short.MAX_VALUE)
-                .addGap(0, 0, 0)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jSplitPane1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(send_JPannel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
@@ -535,14 +544,14 @@ public class SerialTerminal extends javax.swing.JFrame {
         updateAutoscroll();
     }//GEN-LAST:event_autoscroll_JCheckActionPerformed
 
-    private void recievePannel_JPannelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_recievePannel_JPannelMouseClicked
+    private void chartPanelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_chartPanelMouseClicked
         if(DISCONNECT.equals(connect_JButton.getText()))
         updateAutoscroll();
-    }//GEN-LAST:event_recievePannel_JPannelMouseClicked
+    }//GEN-LAST:event_chartPanelMouseClicked
 
-    private void recievePannel_JPannelFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_recievePannel_JPannelFocusLost
+    private void chartPanelFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_chartPanelFocusLost
         updateAutoscroll();
-    }//GEN-LAST:event_recievePannel_JPannelFocusLost
+    }//GEN-LAST:event_chartPanelFocusLost
 
     private void lineEnding_JComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lineEnding_JComboActionPerformed
         input_JPass.requestFocus();
@@ -622,14 +631,16 @@ public class SerialTerminal extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox autoscroll_JCheck;
     private javax.swing.JComboBox buadRates_JCombo;
+    private javax.swing.JPanel chartPanel;
     private javax.swing.JButton clear_JButton;
     private javax.swing.JButton connect_JButton;
     private javax.swing.JPanel connect_JPannel;
     private javax.swing.JCheckBox hideInput_JCheck;
     private javax.swing.JPasswordField input_JPass;
+    private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JComboBox lineEnding_JCombo;
+    private javax.swing.JPanel logPanel;
     private javax.swing.JComboBox portList_JCombo;
-    private javax.swing.JPanel recievePannel_JPannel;
     private javax.swing.JButton send_JButton;
     private javax.swing.JPanel send_JPannel;
     // End of variables declaration//GEN-END:variables

@@ -116,7 +116,7 @@ public class TermLog extends JScrollPane {
         textArea = new javax.swing.JTextArea();
 
         textArea.setEditable(false);
-        textArea.setColumns(20);
+        textArea.setColumns(15);
         setViewportView(textArea);
     }// </editor-fold>//GEN-END:initComponents
 
