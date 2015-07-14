@@ -16,8 +16,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.Timer;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultCaret;
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
@@ -30,46 +28,45 @@ import jssc.SerialPortList;
  */
 public class SerialTerminal extends javax.swing.JFrame {
     
-    public static SerialPort connectedPort;
-
-    private final String FRAME_TITLE = "Serial Terminal v0.1";
-    private final String USER_MESSAGE_PREFACE = "--> ";
-    private final String CONNECT = "Connect";
-    private final String DISCONNECT = "Disconnect";
-    private final char ECHO_CHAR = '*';
+    //<editor-fold defaultstate="collapsed" desc="Constants">
+    private final String FRAME_TITLE          = "Serial Terminal v0.1";
+    private final String USER_MESSAGE_PREFACE = "--> "; //Printed out to designate a user sent message
+    private final String CONNECT              = "Connect";
+    private final String DISCONNECT           = "Disconnect";
+    private final char   ECHO_CHAR            = '*';
     
     private final Color SHADOW = new Color(160, 160, 160);
-    //private final Color caretLine = new Color(51, 51, 51);
-    private final Color defColor = new Color(0, 0, 0);
-
+    private final Color defaultColor = new Color(0, 0, 0);
+    
     private final int MAX_GRAPH_POINTS = 1000; //Points to be displayed on graph
-    private final int TIMER_DELAY = 1000; //Time of delay between refreshes in milliseconds
-
-    private String[] portList;
+    
     private final int BAUD_RATES[] = {300, 600, 1200, 2400, 4800, 9600, 14400, 19200, 28800, 38400, 57600, 115200, 230400, 250000};
     private final int DEFAULT_BAUD_INDEX = 5; //9600
-
-    //Action for the refreshTimer to perform
-    private final ActionListener REFRESH_LISTENER;
-    //Creation of the refreshTimer
-    private final Timer REFRESH_TIMER;
-    //Creation of serialPortReader event listener
-    private final SerialPortEventListener SERIAL_PORT_READER;
     
+    private final ActionListener REFRESH_LISTENER;
+    private final Timer REFRESH_TIMER;
+    private final int TIMER_DELAY = 1000; //Time of delay between refreshes in milliseconds
+    private final SerialPortEventListener SERIAL_PORT_READER;
+    //</editor-fold>
+
+    //<editor-fold defaultstate="collapsed" desc="Class variables">
+    private String[] portList;
+    private SerialPort connectedPort;
     private TermLog terminalLog;
+    //</editor-fold>
 
     /**
      * Creates new form jSSC_SerialFrame
      */
     public SerialTerminal() {
-        //Attempt to garuntee a closed connection upon window close
+        //<editor-fold defaultstate="collapsed" desc="Code to be executed upon window close">
         addWindowListener(new WindowAdapter(){
             @Override
             public void windowClosing(WindowEvent e)
             {
-                if(connectedPort != null)
-                    if(connectedPort.isOpened())
-                        try {
+                if(connectedPort != null)        //If there was a port connection at any time
+                    if(connectedPort.isOpened()) //And it was left open
+                        try {                    //Attempt to close it
                             connectedPort.closePort();
                             System.out.println("Closed the open port");
                         } catch (SerialPortException ex) {
@@ -78,19 +75,19 @@ public class SerialTerminal extends javax.swing.JFrame {
                 e.getWindow().dispose();
             }
         });
-
+        //</editor-fold>
         initComponents();
-        
+        //<editor-fold defaultstate="collapsed" desc="Component Setup">
         //Instantiate and add the terminal log
         this.terminalLog = new TermLog();
         recievePannel_JPannel.add(terminalLog, BorderLayout.CENTER);
-        
+
         //Set the frame title
         this.setTitle(FRAME_TITLE);
-        
+
         //Setup the password field to display it's text (treat it like a regualr input)
         input_JPass.setEchoChar((char)0);
-        
+
         //Populate the portList combo box
         portList = SerialPortList.getPortNames();
         if (portList.length > 0) {
@@ -100,7 +97,7 @@ public class SerialTerminal extends javax.swing.JFrame {
             }
             buttonSetAvailableConnections();
         }
-        
+
         //Populate buad rates combo box
         for(int rate : BAUD_RATES){
             buadRates_JCombo.addItem(rate + " baud");
@@ -109,9 +106,8 @@ public class SerialTerminal extends javax.swing.JFrame {
 
         //Set the carret postion of the output to autoscroll
         terminalLog.setAutoscroll(true);
-        //LinePainter linePainter = new LinePainter(recieved_JTextArea, caretLine);
 
-        //Setup for the timer
+        //Create the Serial port reader.
         //<editor-fold defaultstate="collapsed" desc="Serial Port Reader">
         SERIAL_PORT_READER = (SerialPortEvent event) -> {
             if (event.isRXCHAR()) {//If data is available
@@ -143,45 +139,50 @@ public class SerialTerminal extends javax.swing.JFrame {
             }*/
         };
         //</editor-fold>
-        
-        
+
+
+        //Setup for the timer
         //<editor-fold defaultstate="collapsed" desc="Refresh Listener">
         REFRESH_LISTENER = (ActionEvent e) -> {
-            String[] lastList = portList;
-            String selectedItem = (String)portList_JCombo.getSelectedItem();
-            portList = SerialPortList.getPortNames();
-            if (portList.length > 0) {
-                if(!Arrays.equals(lastList, portList)){
-                    portList_JCombo.removeAllItems();
-                    for (String port : portList) {
+            String[] lastList = portList; //Save the port list's current setup
+            Object selectedItem = portList_JCombo.getSelectedItem(); //Save the user selcted item
+            portList = SerialPortList.getPortNames(); //Update portList
+            if (portList.length > 0) { //So long as there is an available port
+                if(!Arrays.equals(lastList, portList)){ //If the list of ports has changed
+                    portList_JCombo.removeAllItems(); //removed all the previous ports
+                    for (String port : portList) { //Add in all the new ports
                         portList_JCombo.addItem(port);
                     }
+                    //Since the port list combo box is non-editable, this will
+                    //set the selected item to be the previously selected port
+                    //or be ignored if it isn't in the list.
                     portList_JCombo.setSelectedItem(selectedItem);
                 }
-                if(CONNECT.equals(connect_JButton.getText())){
-                    buttonSetAvailableConnections();
+                if(CONNECT.equals(connect_JButton.getText())){ //If not currently connected
+                    buttonSetAvailableConnections(); //show that there are available connections
                 }
-            } else {
-                enableInterface(false);
-                if(connect_JButton.getText().equals(DISCONNECT)){
-                    connect_JButton.setText(CONNECT);
-                    input_JPass.setCaretPosition(0);
+            } else { //No available ports found
+                enableInterface(false); //Disable all buttons (asside from clear)
+                if(connect_JButton.getText().equals(DISCONNECT)){ //If there was previously an open connection
+                    connect_JButton.setText(CONNECT); //Reset the text to display no connection
+                    input_JPass.setCaretPosition(0); //Effectively clears any selected text in the input
+                    //Show the user that there was a forced disconnection
                     JOptionPane.showMessageDialog(rootPane,
                             "Error: Forced disconnection at " + portList_JCombo.getSelectedItem(),
                             "Forced disconnection",
                             JOptionPane.OK_OPTION,
                             null);
                 }
-                
+
             }
         };
         //</editor-fold>
-        
+
         //Create the refresh timer
         REFRESH_TIMER = new Timer(TIMER_DELAY, REFRESH_LISTENER);
         REFRESH_TIMER.setRepeats(true);
-        //Start the timer for refreshing connections
         REFRESH_TIMER.start();
+        //</editor-fold>
     }
 
     /**
@@ -208,8 +209,9 @@ public class SerialTerminal extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Serial Terminal v0.01");
-        setMinimumSize(new java.awt.Dimension(500, 343));
+        setMinimumSize(new java.awt.Dimension(525, 343));
         setName("serialJFrame"); // NOI18N
+        setPreferredSize(new java.awt.Dimension(525, 343));
 
         portList_JCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "No devices found" }));
         portList_JCombo.setEnabled(false);
@@ -239,7 +241,7 @@ public class SerialTerminal extends javax.swing.JFrame {
         connect_JPannelLayout.setHorizontalGroup(
             connect_JPannelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, connect_JPannelLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap(18, Short.MAX_VALUE)
                 .addComponent(portList_JCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(buadRates_JCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -266,6 +268,9 @@ public class SerialTerminal extends javax.swing.JFrame {
 
         connect_JPannelLayout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {buadRates_JCombo, clear_JButton, connect_JButton, portList_JCombo});
 
+        recievePannel_JPannel.setMinimumSize(new java.awt.Dimension(160, 15));
+        recievePannel_JPannel.setName(""); // NOI18N
+        recievePannel_JPannel.setPreferredSize(new java.awt.Dimension(160, 15));
         recievePannel_JPannel.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusLost(java.awt.event.FocusEvent evt) {
                 recievePannel_JPannelFocusLost(evt);
@@ -375,7 +380,7 @@ public class SerialTerminal extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addComponent(connect_JPannel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
-                .addComponent(recievePannel_JPannel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(recievePannel_JPannel, javax.swing.GroupLayout.DEFAULT_SIZE, 221, Short.MAX_VALUE)
                 .addGap(0, 0, 0)
                 .addComponent(send_JPannel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
@@ -383,41 +388,47 @@ public class SerialTerminal extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    // <editor-fold defaultstate="collapsed" desc="Connect Button">
+    // <editor-fold defaultstate="collapsed" desc="Connect Button and createConnection()">
     private void connect_JButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connect_JButtonActionPerformed
-        // TODO add your handling code here:
-        if(CONNECT.equals(connect_JButton.getText())){
-            String desiredPort = (String) portList_JCombo.getSelectedItem();
-            connectedPort = new SerialPort(desiredPort);
-            int baudRate = BAUD_RATES[buadRates_JCombo.getSelectedIndex()];
-            if(createConnection(connectedPort, baudRate)){
+        if(CONNECT.equals(connect_JButton.getText())){ //If there are no current connections
+            String desiredPort = (String) portList_JCombo.getSelectedItem(); //Attempt to connect
+            connectedPort = new SerialPort(desiredPort);                     //given the user's
+            int baudRate = BAUD_RATES[buadRates_JCombo.getSelectedIndex()];  //input
+            if(createConnection(connectedPort, baudRate)){ //If the connection was successfull
                 buttonSetConnected();
                 connect_JButton.setText(DISCONNECT);
                 input_JPass.requestFocus();
                 input_JPass.selectAll();
-            }
-        } else {
-            connect_JButton.setText(CONNECT);
-            buttonSetAvailableConnections();
-            try {
+            } //Failed connections are handled alread in the createConnection method
+        } else { //There is a current connection
+            try { //Try to close the port and set the frame to display there currently isn't a connection
                 connectedPort.closePort();
+                connect_JButton.setText(CONNECT);
+                buttonSetAvailableConnections();
             } catch (SerialPortException ex) {
-                System.out.println(ex);
+                //Show the user there was an error disconnecting
+                JOptionPane.showMessageDialog(rootPane,
+                            "Error: Unable to disconnect from " + portList_JCombo.getSelectedItem(),
+                            "Unable to disconnect",
+                            JOptionPane.OK_OPTION,
+                            null);
+                System.out.println(ex); //Print out the exception
             }
         }
     }//GEN-LAST:event_connect_JButtonActionPerformed
+    /** Will attempt to create a serial connection to the chosen port at the desired baud rate */
     private boolean createConnection(SerialPort chosenPort, int baudRate){
-        try {
-            chosenPort.openPort();
-            chosenPort.setParams(baudRate,
+        try { //Attempt to open a port
+            chosenPort.openPort(); //Open the port
+            chosenPort.setParams(baudRate, //Set it's parameters
                     SerialPort.DATABITS_8,
                     SerialPort.STOPBITS_1,
                     SerialPort.PARITY_NONE);
-            chosenPort.addEventListener(SERIAL_PORT_READER);
-            return true;
-        } catch (SerialPortException ex) {
-            System.out.println(ex);
-            switch (ex.getExceptionType()) {
+            chosenPort.addEventListener(SERIAL_PORT_READER); //Attach our listener
+            return true; //Return that the connection was successful
+        } catch (SerialPortException ex) { //An unsuccessful connection
+            System.out.println(ex); //Print out the exception
+            switch (ex.getExceptionType()) { //Display the reason as to why the connection failed
                 case SerialPortException.TYPE_PORT_BUSY:
                     JOptionPane.showMessageDialog(rootPane, "Error: " + chosenPort.getPortName() + " is busy.", "Port Busy", JOptionPane.OK_OPTION, null);
                     break;
@@ -425,7 +436,7 @@ public class SerialTerminal extends javax.swing.JFrame {
                     JOptionPane.showMessageDialog(rootPane, "Error: Permission denied to" + chosenPort.getPortName(), "Permission Denied", JOptionPane.OK_OPTION, null);
                     break;
             }
-            return false;
+            return false; //Return that the connection failed
         }
     }
     // </editor-fold>
@@ -439,15 +450,19 @@ public class SerialTerminal extends javax.swing.JFrame {
                     JOptionPane.YES_NO_OPTION))
                 terminalLog.clearText();
     }//GEN-LAST:event_clear_JButtonActionPerformed
-
     // </editor-fold>
 
+    //<editor-fold defaultstate="collapsed" desc="Terminal Inputs">
     private void send_JButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_send_JButtonActionPerformed
-        // TODO add your handling code here:
-        inputFunction();
+        passInput();
     }//GEN-LAST:event_send_JButtonActionPerformed
-    
-    private void inputFunction() {
+
+    private void input_JPassActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_input_JPassActionPerformed
+        passInput();
+    }//GEN-LAST:event_input_JPassActionPerformed
+
+    /** Default function to be called when attempting to pass user input to connected device */
+    private void passInput() {
         updateAutoscroll();
         String strToSee = String.valueOf(input_JPass.getPassword());
         String strToSend = strToSee;
@@ -494,23 +509,15 @@ public class SerialTerminal extends javax.swing.JFrame {
             }
         }
     }
+    //</editor-fold>
     
-    // <editor-fold defaultstate="collapsed" desc="Autoscroll Checkbox and updateAutoscroll()">
-    private void autoscroll_JCheckActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_autoscroll_JCheckActionPerformed
-        // TODO add your handling code here:
-        updateAutoscroll();
-    }//GEN-LAST:event_autoscroll_JCheckActionPerformed
-
-    private void input_JPassActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_input_JPassActionPerformed
-        inputFunction();
-    }//GEN-LAST:event_input_JPassActionPerformed
-
+    // <editor-fold defaultstate="collapsed" desc="Password field events">
     private void input_JPassFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_input_JPassFocusLost
         input_JPass.setForeground(SHADOW);
     }//GEN-LAST:event_input_JPassFocusLost
 
     private void input_JPassFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_input_JPassFocusGained
-        input_JPass.setForeground(defColor);
+        input_JPass.setForeground(defaultColor);
     }//GEN-LAST:event_input_JPassFocusGained
 
     private void hideInput_JCheckActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_hideInput_JCheckActionPerformed
@@ -521,6 +528,12 @@ public class SerialTerminal extends javax.swing.JFrame {
         }
         input_JPass.requestFocus();
     }//GEN-LAST:event_hideInput_JCheckActionPerformed
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc="Autoscroll actions">
+    private void autoscroll_JCheckActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_autoscroll_JCheckActionPerformed
+        updateAutoscroll();
+    }//GEN-LAST:event_autoscroll_JCheckActionPerformed
 
     private void recievePannel_JPannelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_recievePannel_JPannelMouseClicked
         if(DISCONNECT.equals(connect_JButton.getText()))
@@ -538,8 +551,10 @@ public class SerialTerminal extends javax.swing.JFrame {
    private void updateAutoscroll() {
         terminalLog.setAutoscroll(autoscroll_JCheck.isSelected());
     }
-    // </editor-fold>
+    //</editor-fold>
 
+    //<editor-fold defaultstate="collapsed" desc="Button States">
+    /** Changes the state of all buttons, except clear, which shall always be enabled */
     private void enableInterface(boolean newState) {
         portList_JCombo.setEnabled(newState);
         buadRates_JCombo.setEnabled(newState);
@@ -551,7 +566,7 @@ public class SerialTerminal extends javax.swing.JFrame {
         send_JButton.setEnabled(newState);
         lineEnding_JCombo.setEnabled(newState);
     }
-
+    /** Default button states for when connections are available */
     private void buttonSetAvailableConnections() {
         portList_JCombo.setEnabled(true);
         buadRates_JCombo.setEnabled(true);
@@ -563,6 +578,7 @@ public class SerialTerminal extends javax.swing.JFrame {
         lineEnding_JCombo.setEnabled(false);
     }
 
+    /** Default button states for when connected to a device */
     private void buttonSetConnected() {
         portList_JCombo.setEnabled(false);
         buadRates_JCombo.setEnabled(false);
@@ -573,6 +589,7 @@ public class SerialTerminal extends javax.swing.JFrame {
         send_JButton.setEnabled(true);
         lineEnding_JCombo.setEnabled(true);
     }
+    //</editor-fold>
 
     /**
      * @param args the command line arguments
@@ -581,7 +598,7 @@ public class SerialTerminal extends javax.swing.JFrame {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
          */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
@@ -594,9 +611,7 @@ public class SerialTerminal extends javax.swing.JFrame {
             java.util.logging.Logger.getLogger(SerialTerminal.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
-        //</editor-fold>
-        
-        //</editor-fold>
+
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> {
