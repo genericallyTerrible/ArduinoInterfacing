@@ -6,10 +6,13 @@
 package serial;
 
 import java.awt.BorderLayout;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JPanel;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.NumberAxis;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
@@ -20,6 +23,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 public class LineChart extends JPanel {
     
     private final XYSeries defaultSeries;
+    private XYSeries subSeries;
     private final XYSeriesCollection defaultDataset;
     private final JFreeChart defaultChart;
     private final ChartPanel graph;
@@ -37,7 +41,8 @@ public class LineChart extends JPanel {
         initComponents();
         this.bufferSize = bufferSize;
         defaultSeries = new XYSeries(graphName);
-        defaultDataset = new XYSeriesCollection(defaultSeries);
+        subSeries = defaultSeries;
+        defaultDataset = new XYSeriesCollection(subSeries);
         defaultChart = ChartFactory.createXYLineChart(graphName, xAxisLabel, yAxisLabel, defaultDataset);
         graph = new ChartPanel(defaultChart);
         this.add(graph, BorderLayout.CENTER);
@@ -45,12 +50,10 @@ public class LineChart extends JPanel {
     }
     
     /**
-     *
+     * Adds the y value to the end of the data set
      * @param y The y value of the data point to add
      */
     public void append(int y){
-        if(samples > bufferSize)
-            defaultSeries.remove(samples - bufferSize);
         defaultSeries.add(samples++, y);
     }
     
@@ -59,6 +62,7 @@ public class LineChart extends JPanel {
      */
     public void clear(){
         defaultSeries.clear();
+        samples = 0;
     }
 
     /**

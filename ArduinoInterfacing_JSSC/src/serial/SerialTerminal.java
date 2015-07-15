@@ -14,6 +14,7 @@ import java.awt.event.WindowEvent;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.Timer;
 import jssc.SerialPort;
@@ -27,22 +28,22 @@ import jssc.SerialPortList;
  * @author John
  */
 public class SerialTerminal extends javax.swing.JFrame {
-    
+
     //<editor-fold defaultstate="collapsed" desc="Constants">
     private final String FRAME_TITLE          = "Serial Terminal v0.1";
     private final String USER_MESSAGE_PREFACE = "--> "; //Printed out to designate a user sent message
     private final String CONNECT              = "Connect";
     private final String DISCONNECT           = "Disconnect";
     private final char   ECHO_CHAR            = '*';
-    
+
     private final Color SHADOW = new Color(160, 160, 160);
     private final Color defaultColor = new Color(0, 0, 0);
-    
-    private final int MAX_GRAPH_POINTS = 1000; //Points to be displayed on graph
-    
+
+    private final int MAX_GRAPH_POINTS = 100; //Points to be displayed on graph
+
     private final int BAUD_RATES[] = {300, 600, 1200, 2400, 4800, 9600, 14400, 19200, 28800, 38400, 57600, 115200, 230400, 250000};
     private final int DEFAULT_BAUD_INDEX = 5; //9600
-    
+
     private final ActionListener REFRESH_LISTENER;
     private final Timer REFRESH_TIMER;
     private final int TIMER_DELAY = 1000; //Time of delay between refreshes in milliseconds
@@ -79,12 +80,15 @@ public class SerialTerminal extends javax.swing.JFrame {
         //</editor-fold>
         initComponents();
         //<editor-fold defaultstate="collapsed" desc="Component Setup">
-        //Instantiate and add the terminal log
+
+        //Create and add the terminal log
         terminalLog = new TermLog();
-        logPanel.add(terminalLog);
+        terminalLog.setVisible(true);
+        terminal_JPanel.add(terminalLog, BorderLayout.CENTER);
+
+        //Create the line chart
         dataChart = new LineChart("Data in", "Samples", "Value", MAX_GRAPH_POINTS);
-        chartPanel.add(dataChart, BorderLayout.CENTER);
-        
+
         //Set the frame title
         this.setTitle(FRAME_TITLE);
 
@@ -119,6 +123,8 @@ public class SerialTerminal extends javax.swing.JFrame {
                         byte buffer[] = connectedPort.readBytes(event.getEventValue());
                         String strIn = new String(buffer);
                         terminalLog.append(strIn);
+                        if(isInteger(strIn.trim(), 10))
+                            dataChart.append(Integer.parseInt(strIn.trim()));
                     } catch (SerialPortException ex) {
                         System.out.println(ex);
                     }
@@ -197,26 +203,24 @@ public class SerialTerminal extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        connect_JPannel = new javax.swing.JPanel();
+        connect_JPanel = new javax.swing.JPanel();
         portList_JCombo = new javax.swing.JComboBox();
         buadRates_JCombo = new javax.swing.JComboBox();
         connect_JButton = new javax.swing.JButton();
         clear_JButton = new javax.swing.JButton();
-        jSplitPane1 = new javax.swing.JSplitPane();
-        logPanel = new javax.swing.JPanel();
-        chartPanel = new javax.swing.JPanel();
-        send_JPannel = new javax.swing.JPanel();
+        terminal_JPanel = new javax.swing.JPanel();
+        send_JPanel = new javax.swing.JPanel();
         input_JPass = new javax.swing.JPasswordField();
         send_JButton = new javax.swing.JButton();
         autoscroll_JCheck = new javax.swing.JCheckBox();
         hideInput_JCheck = new javax.swing.JCheckBox();
         lineEnding_JCombo = new javax.swing.JComboBox();
+        showSplit_JCheck = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Serial Terminal v0.01");
-        setMinimumSize(new java.awt.Dimension(525, 400));
+        setMinimumSize(new java.awt.Dimension(525, 343));
         setName("serialJFrame"); // NOI18N
-        setPreferredSize(new java.awt.Dimension(525, 400));
 
         portList_JCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "No devices found" }));
         portList_JCombo.setEnabled(false);
@@ -241,12 +245,12 @@ public class SerialTerminal extends javax.swing.JFrame {
             }
         });
 
-        javax.swing.GroupLayout connect_JPannelLayout = new javax.swing.GroupLayout(connect_JPannel);
-        connect_JPannel.setLayout(connect_JPannelLayout);
-        connect_JPannelLayout.setHorizontalGroup(
-            connect_JPannelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, connect_JPannelLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        javax.swing.GroupLayout connect_JPanelLayout = new javax.swing.GroupLayout(connect_JPanel);
+        connect_JPanel.setLayout(connect_JPanelLayout);
+        connect_JPanelLayout.setHorizontalGroup(
+            connect_JPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, connect_JPanelLayout.createSequentialGroup()
+                .addContainerGap(18, Short.MAX_VALUE)
                 .addComponent(portList_JCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(buadRates_JCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -257,13 +261,13 @@ public class SerialTerminal extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
-        connect_JPannelLayout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {clear_JButton, connect_JButton});
+        connect_JPanelLayout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {clear_JButton, connect_JButton});
 
-        connect_JPannelLayout.setVerticalGroup(
-            connect_JPannelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(connect_JPannelLayout.createSequentialGroup()
+        connect_JPanelLayout.setVerticalGroup(
+            connect_JPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(connect_JPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(connect_JPannelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(connect_JPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(portList_JCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(buadRates_JCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(connect_JButton)
@@ -271,26 +275,22 @@ public class SerialTerminal extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
-        connect_JPannelLayout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {buadRates_JCombo, clear_JButton, connect_JButton, portList_JCombo});
+        connect_JPanelLayout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {buadRates_JCombo, clear_JButton, connect_JButton, portList_JCombo});
 
-        logPanel.setLayout(new java.awt.BorderLayout());
-        jSplitPane1.setLeftComponent(logPanel);
-
-        chartPanel.setMinimumSize(new java.awt.Dimension(160, 15));
-        chartPanel.setName(""); // NOI18N
-        chartPanel.setPreferredSize(new java.awt.Dimension(160, 15));
-        chartPanel.addFocusListener(new java.awt.event.FocusAdapter() {
+        terminal_JPanel.setMinimumSize(new java.awt.Dimension(160, 15));
+        terminal_JPanel.setName(""); // NOI18N
+        terminal_JPanel.setPreferredSize(new java.awt.Dimension(160, 15));
+        terminal_JPanel.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusLost(java.awt.event.FocusEvent evt) {
-                chartPanelFocusLost(evt);
+                terminal_JPanelFocusLost(evt);
             }
         });
-        chartPanel.addMouseListener(new java.awt.event.MouseAdapter() {
+        terminal_JPanel.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                chartPanelMouseClicked(evt);
+                terminal_JPanelMouseClicked(evt);
             }
         });
-        chartPanel.setLayout(new java.awt.BorderLayout());
-        jSplitPane1.setRightComponent(chartPanel);
+        terminal_JPanel.setLayout(new java.awt.BorderLayout());
 
         input_JPass.setText("Type your message here...");
         input_JPass.setEnabled(false);
@@ -342,37 +342,48 @@ public class SerialTerminal extends javax.swing.JFrame {
             }
         });
 
-        javax.swing.GroupLayout send_JPannelLayout = new javax.swing.GroupLayout(send_JPannel);
-        send_JPannel.setLayout(send_JPannelLayout);
-        send_JPannelLayout.setHorizontalGroup(
-            send_JPannelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, send_JPannelLayout.createSequentialGroup()
+        showSplit_JCheck.setText("Show Graph");
+        showSplit_JCheck.setEnabled(false);
+        showSplit_JCheck.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                showSplit_JCheckActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout send_JPanelLayout = new javax.swing.GroupLayout(send_JPanel);
+        send_JPanel.setLayout(send_JPanelLayout);
+        send_JPanelLayout.setHorizontalGroup(
+            send_JPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, send_JPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(send_JPannelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(send_JPannelLayout.createSequentialGroup()
+                .addGroup(send_JPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(send_JPanelLayout.createSequentialGroup()
                         .addComponent(autoscroll_JCheck)
                         .addGap(18, 18, 18)
                         .addComponent(hideInput_JCheck)
+                        .addGap(18, 18, 18)
+                        .addComponent(showSplit_JCheck)
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addComponent(input_JPass, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(send_JPannelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                .addGroup(send_JPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                     .addComponent(send_JButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(lineEnding_JCombo, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
-        send_JPannelLayout.setVerticalGroup(
-            send_JPannelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(send_JPannelLayout.createSequentialGroup()
+        send_JPanelLayout.setVerticalGroup(
+            send_JPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(send_JPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(send_JPannelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGroup(send_JPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(input_JPass, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(send_JButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(send_JPannelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(send_JPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lineEnding_JCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(autoscroll_JCheck)
-                    .addComponent(hideInput_JCheck))
+                    .addComponent(hideInput_JCheck)
+                    .addComponent(showSplit_JCheck))
                 .addGap(6, 6, 6))
         );
 
@@ -380,22 +391,34 @@ public class SerialTerminal extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(send_JPannel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(connect_JPannel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(jSplitPane1)
+            .addComponent(terminal_JPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(send_JPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(connect_JPanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addComponent(connect_JPannel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSplitPane1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(send_JPannel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(connect_JPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
+                .addComponent(terminal_JPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 221, Short.MAX_VALUE)
+                .addGap(0, 0, 0)
+                .addComponent(send_JPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    public static boolean isInteger(String s, int radix) {
+    if(s.isEmpty()) return false;
+    for(int i = 0; i < s.length(); i++) {
+        if(i == 0 && s.charAt(i) == '-') {
+            if(s.length() == 1) return false;
+            else continue;
+        }
+        if(Character.digit(s.charAt(i),radix) < 0) return false;
+    }
+    return true;
+}
 
     // <editor-fold defaultstate="collapsed" desc="Connect Button and createConnection()">
     private void connect_JButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connect_JButtonActionPerformed
@@ -456,8 +479,10 @@ public class SerialTerminal extends javax.swing.JFrame {
         if(!terminalLog.isEmpty())
             if(JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(rootPane, "Are you sure you want to clear the terminal log?",
                     "Clear entries?",
-                    JOptionPane.YES_NO_OPTION))
+                    JOptionPane.YES_NO_OPTION)){
                 terminalLog.clearText();
+                dataChart.clear();
+            }
     }//GEN-LAST:event_clear_JButtonActionPerformed
     // </editor-fold>
 
@@ -519,7 +544,7 @@ public class SerialTerminal extends javax.swing.JFrame {
         }
     }
     //</editor-fold>
-    
+
     // <editor-fold defaultstate="collapsed" desc="Password field events">
     private void input_JPassFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_input_JPassFocusLost
         input_JPass.setForeground(SHADOW);
@@ -538,20 +563,20 @@ public class SerialTerminal extends javax.swing.JFrame {
         input_JPass.requestFocus();
     }//GEN-LAST:event_hideInput_JCheckActionPerformed
     // </editor-fold>
-    
+
     // <editor-fold defaultstate="collapsed" desc="Autoscroll actions">
     private void autoscroll_JCheckActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_autoscroll_JCheckActionPerformed
         updateAutoscroll();
     }//GEN-LAST:event_autoscroll_JCheckActionPerformed
 
-    private void chartPanelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_chartPanelMouseClicked
+    private void terminal_JPanelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_terminal_JPanelMouseClicked
         if(DISCONNECT.equals(connect_JButton.getText()))
         updateAutoscroll();
-    }//GEN-LAST:event_chartPanelMouseClicked
+    }//GEN-LAST:event_terminal_JPanelMouseClicked
 
-    private void chartPanelFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_chartPanelFocusLost
+    private void terminal_JPanelFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_terminal_JPanelFocusLost
         updateAutoscroll();
-    }//GEN-LAST:event_chartPanelFocusLost
+    }//GEN-LAST:event_terminal_JPanelFocusLost
 
     private void lineEnding_JComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lineEnding_JComboActionPerformed
         input_JPass.requestFocus();
@@ -561,6 +586,19 @@ public class SerialTerminal extends javax.swing.JFrame {
         terminalLog.setAutoscroll(autoscroll_JCheck.isSelected());
     }
     //</editor-fold>
+
+    private void showSplit_JCheckActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showSplit_JCheckActionPerformed
+        terminal_JPanel.removeAll();
+        //Create the split view terminal for possible usage
+        SplitTerminal splitView = new SplitTerminal(terminalLog, dataChart, true);
+        if(showSplit_JCheck.isSelected()) {
+            terminal_JPanel.add(splitView, BorderLayout.CENTER);
+        } else {
+            terminal_JPanel.add(terminalLog, BorderLayout.CENTER);
+        }
+        terminal_JPanel.revalidate();
+        terminal_JPanel.repaint();
+    }//GEN-LAST:event_showSplit_JCheckActionPerformed
 
     //<editor-fold defaultstate="collapsed" desc="Button States">
     /** Changes the state of all buttons, except clear, which shall always be enabled */
@@ -572,6 +610,7 @@ public class SerialTerminal extends javax.swing.JFrame {
         input_JPass.setEnabled(newState);
         autoscroll_JCheck.setEnabled(newState);
         hideInput_JCheck.setEnabled(newState);
+        showSplit_JCheck.setEnabled(newState);
         send_JButton.setEnabled(newState);
         lineEnding_JCombo.setEnabled(newState);
     }
@@ -583,6 +622,7 @@ public class SerialTerminal extends javax.swing.JFrame {
         input_JPass.setEnabled(false);
         autoscroll_JCheck.setEnabled(false);
         hideInput_JCheck.setEnabled(false);
+        showSplit_JCheck.setEnabled(false);
         send_JButton.setEnabled(false);
         lineEnding_JCombo.setEnabled(false);
     }
@@ -595,6 +635,7 @@ public class SerialTerminal extends javax.swing.JFrame {
         input_JPass.setEnabled(true);
         autoscroll_JCheck.setEnabled(true);
         hideInput_JCheck.setEnabled(true);
+        showSplit_JCheck.setEnabled(true);
         send_JButton.setEnabled(true);
         lineEnding_JCombo.setEnabled(true);
     }
@@ -631,18 +672,17 @@ public class SerialTerminal extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox autoscroll_JCheck;
     private javax.swing.JComboBox buadRates_JCombo;
-    private javax.swing.JPanel chartPanel;
     private javax.swing.JButton clear_JButton;
     private javax.swing.JButton connect_JButton;
-    private javax.swing.JPanel connect_JPannel;
+    private javax.swing.JPanel connect_JPanel;
     private javax.swing.JCheckBox hideInput_JCheck;
     private javax.swing.JPasswordField input_JPass;
-    private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JComboBox lineEnding_JCombo;
-    private javax.swing.JPanel logPanel;
     private javax.swing.JComboBox portList_JCombo;
     private javax.swing.JButton send_JButton;
-    private javax.swing.JPanel send_JPannel;
+    private javax.swing.JPanel send_JPanel;
+    private javax.swing.JCheckBox showSplit_JCheck;
+    private javax.swing.JPanel terminal_JPanel;
     // End of variables declaration//GEN-END:variables
     //</editor-fold>
 }
