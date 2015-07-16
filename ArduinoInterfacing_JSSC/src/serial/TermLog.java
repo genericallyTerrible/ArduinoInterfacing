@@ -18,15 +18,22 @@ import javax.swing.text.DefaultCaret;
  */
 public class TermLog extends JScrollPane {
 
+    private boolean autoscroll;
+    
     /**
      * Creates new form TermLog
      */
     public TermLog() {
         initComponents();
+        autoscroll = true;
+        DefaultCaret caret = (DefaultCaret) textArea.getCaret();
+        textArea.setCaretPosition(textArea.getDocument().getLength());
+        caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
     }
 
     /**
      * Adds a String to the end of the JTextArea
+     *
      * @param message input string to be added
      */
     public void append(String message) {
@@ -35,6 +42,7 @@ public class TermLog extends JScrollPane {
 
     /**
      * Adds a string on a new line at the end of the JTextArea
+     *
      * @param message input string to be added on a new line
      */
     public void appendOnNewLine(String message) {
@@ -50,60 +58,67 @@ public class TermLog extends JScrollPane {
         }
         textArea.append(message);
     }
-    
+
     /**
      * Clears the JTextArea
      */
-    public void clearText(){
+    public void clearText() {
         textArea.setText("");
     }
-    
+
     /**
      * Gets the entire content of the JTextArea as a string
+     *
      * @return content of the JTextArea
      */
-    public String getText(){
+    public String getText() {
         return textArea.getText();
     }
-    
+
     /**
      * Checks if the JTextArea is empty or not
+     *
      * @return True if empty, false otherwise
      */
-    public boolean isEmpty(){
-        return(textArea.getText().equals(""));
+    public boolean isEmpty() {
+        return (textArea.getText().equals(""));
     }
-    
+
     /**
      * Gets the caret of the JTextArea
+     *
      * @return the caret of the JTextArea
      */
-    public Caret getCaret(){
+    public Caret getCaret() {
         return textArea.getCaret();
     }
 
     /**
      * Enables or disables keeping the caret at the end of the document,
-     * effectively scrolling to the bottom of the text area automatically while enabled.
+     * effectively scrolling to the bottom of the text area automatically while
+     * enabled.
+     *
      * @param enable True enables, false disables
      */
-    public void setAutoscroll(boolean enable){
+    public void setAutoscroll(boolean enable) {
+        autoscroll = enable;
         DefaultCaret caret = (DefaultCaret) textArea.getCaret();
-        if(enable){
+        if (enable) {
+            placeCaretAtEnd();
             caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
         } else {
-            caret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);    
+            caret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
         }
     }
-    
+
     /**
-     * Places the caret at the end of the text area.
-     * Does not modify the caret's behavior.
+     * Places the caret at the end of the text area. Does not modify the caret's
+     * behavior.
      */
-    public void placeCaretAtEnd(){
+    public void placeCaretAtEnd() {
         textArea.setCaretPosition(textArea.getDocument().getLength());
     }
-    
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -117,8 +132,26 @@ public class TermLog extends JScrollPane {
 
         textArea.setEditable(false);
         textArea.setColumns(15);
+        textArea.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                textAreaFocusLost(evt);
+            }
+        });
+        textArea.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                textAreaMouseClicked(evt);
+            }
+        });
         setViewportView(textArea);
     }// </editor-fold>//GEN-END:initComponents
+
+    private void textAreaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_textAreaMouseClicked
+        setAutoscroll(autoscroll);
+    }//GEN-LAST:event_textAreaMouseClicked
+
+    private void textAreaFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_textAreaFocusLost
+        setAutoscroll(autoscroll);
+    }//GEN-LAST:event_textAreaFocusLost
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

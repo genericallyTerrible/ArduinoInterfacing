@@ -1,5 +1,5 @@
 int randInt = 0;
-int delayTime = 100;
+int delayTime = 10;
 void setup() {
   randomSeed(analogRead(0));
   // put your setup code here, to run once:

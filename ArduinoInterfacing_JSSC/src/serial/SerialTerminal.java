@@ -14,7 +14,6 @@ import java.awt.event.WindowEvent;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.Timer;
 import jssc.SerialPort;
@@ -30,11 +29,11 @@ import jssc.SerialPortList;
 public class SerialTerminal extends javax.swing.JFrame {
 
     //<editor-fold defaultstate="collapsed" desc="Constants">
-    private final String FRAME_TITLE          = "Serial Terminal v0.1";
+    private final String FRAME_TITLE = "Serial Terminal v0.1";
     private final String USER_MESSAGE_PREFACE = "--> "; //Printed out to designate a user sent message
-    private final String CONNECT              = "Connect";
-    private final String DISCONNECT           = "Disconnect";
-    private final char   ECHO_CHAR            = '*';
+    private final String CONNECT = "Connect";
+    private final String DISCONNECT = "Disconnect";
+    private final char ECHO_CHAR = '*';
 
     private final Color SHADOW = new Color(160, 160, 160);
     private final Color defaultColor = new Color(0, 0, 0);
@@ -62,18 +61,25 @@ public class SerialTerminal extends javax.swing.JFrame {
      */
     public SerialTerminal() {
         //<editor-fold defaultstate="collapsed" desc="Code to be executed upon window close">
-        addWindowListener(new WindowAdapter(){
+        addWindowListener(new WindowAdapter() {
             @Override
-            public void windowClosing(WindowEvent e)
-            {
-                if(connectedPort != null)        //If there was a port connection at any time
-                    if(connectedPort.isOpened()) //And it was left open
+            public void windowClosing(WindowEvent e) {
+                if (connectedPort != null) //If there was a port connection at any time
+                {
+                    if (connectedPort.isOpened()) //And it was left open
+                    {
                         try {                    //Attempt to close it
                             connectedPort.closePort();
-                            System.out.println("Closed the open port");
+                            JOptionPane.showMessageDialog(rootPane,
+                                    "Open port at " + portList_JCombo.getSelectedItem() + " closed successfully.",
+                                    "Hanging port closed.",
+                                    JOptionPane.INFORMATION_MESSAGE,
+                                    null);
                         } catch (SerialPortException ex) {
                             Logger.getLogger(SerialTerminal.class.getName()).log(Level.SEVERE, null, ex);
                         }
+                    }
+                }
                 e.getWindow().dispose();
             }
         });
@@ -93,7 +99,7 @@ public class SerialTerminal extends javax.swing.JFrame {
         this.setTitle(FRAME_TITLE);
 
         //Setup the password field to display it's text (treat it like a regualr input)
-        input_JPass.setEchoChar((char)0);
+        input_JPass.setEchoChar((char) 0);
 
         //Populate the portList combo box
         portList = SerialPortList.getPortNames();
@@ -106,7 +112,7 @@ public class SerialTerminal extends javax.swing.JFrame {
         }
 
         //Populate buad rates combo box
-        for(int rate : BAUD_RATES){
+        for (int rate : BAUD_RATES) {
             buadRates_JCombo.addItem(rate + " baud");
         }
         buadRates_JCombo.setSelectedIndex(DEFAULT_BAUD_INDEX);
@@ -123,8 +129,9 @@ public class SerialTerminal extends javax.swing.JFrame {
                         byte buffer[] = connectedPort.readBytes(event.getEventValue());
                         String strIn = new String(buffer);
                         terminalLog.append(strIn);
-                        if(isInteger(strIn.trim(), 10))
+                        if (isInteger(strIn.trim(), 10)) {
                             dataChart.append(Integer.parseInt(strIn.trim()));
+                        }
                     } catch (SerialPortException ex) {
                         System.out.println(ex);
                     }
@@ -141,14 +148,14 @@ public class SerialTerminal extends javax.swing.JFrame {
                 } else {
                     System.out.println("DSR - OFF");
                 }
-            } else if(event.isBREAK()){
+            } else if (event.isBREAK()) {
                 System.out.println("BREAK");
             } /*else {
-            System.out.println("No data found.");
-            }*/
+             System.out.println("No data found.");
+             }*/
+
         };
         //</editor-fold>
-
 
         //Setup for the timer
         //<editor-fold defaultstate="collapsed" desc="Refresh Listener">
@@ -157,7 +164,7 @@ public class SerialTerminal extends javax.swing.JFrame {
             Object selectedItem = portList_JCombo.getSelectedItem(); //Save the user selcted item
             portList = SerialPortList.getPortNames(); //Update portList
             if (portList.length > 0) { //So long as there is an available port
-                if(!Arrays.equals(lastList, portList)){ //If the list of ports has changed
+                if (!Arrays.equals(lastList, portList)) { //If the list of ports has changed
                     portList_JCombo.removeAllItems(); //removed all the previous ports
                     for (String port : portList) { //Add in all the new ports
                         portList_JCombo.addItem(port);
@@ -167,19 +174,19 @@ public class SerialTerminal extends javax.swing.JFrame {
                     //or be ignored if it isn't in the list.
                     portList_JCombo.setSelectedItem(selectedItem);
                 }
-                if(CONNECT.equals(connect_JButton.getText())){ //If not currently connected
+                if (CONNECT.equals(connect_JButton.getText())) { //If not currently connected
                     buttonSetAvailableConnections(); //show that there are available connections
                 }
             } else { //No available ports found
                 enableInterface(false); //Disable all buttons (asside from clear)
-                if(connect_JButton.getText().equals(DISCONNECT)){ //If there was previously an open connection
+                if (connect_JButton.getText().equals(DISCONNECT)) { //If there was previously an open connection
                     connect_JButton.setText(CONNECT); //Reset the text to display no connection
                     input_JPass.setCaretPosition(0); //Effectively clears any selected text in the input
                     //Show the user that there was a forced disconnection
                     JOptionPane.showMessageDialog(rootPane,
                             "Error: Forced disconnection at " + portList_JCombo.getSelectedItem(),
                             "Forced disconnection",
-                            JOptionPane.OK_OPTION,
+                            JOptionPane.ERROR_MESSAGE,
                             null);
                 }
 
@@ -216,11 +223,13 @@ public class SerialTerminal extends javax.swing.JFrame {
         hideInput_JCheck = new javax.swing.JCheckBox();
         lineEnding_JCombo = new javax.swing.JComboBox();
         showSplit_JCheck = new javax.swing.JCheckBox();
+        graphBuffer_JBtn = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Serial Terminal v0.01");
-        setMinimumSize(new java.awt.Dimension(525, 343));
+        setMinimumSize(new java.awt.Dimension(575, 350));
         setName("serialJFrame"); // NOI18N
+        setPreferredSize(new java.awt.Dimension(575, 350));
 
         portList_JCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "No devices found" }));
         portList_JCombo.setEnabled(false);
@@ -250,14 +259,14 @@ public class SerialTerminal extends javax.swing.JFrame {
         connect_JPanelLayout.setHorizontalGroup(
             connect_JPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, connect_JPanelLayout.createSequentialGroup()
-                .addContainerGap(18, Short.MAX_VALUE)
-                .addComponent(portList_JCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(portList_JCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(buadRates_JCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(buadRates_JCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(connect_JButton, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(connect_JButton, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(clear_JButton, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(clear_JButton, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
@@ -268,10 +277,10 @@ public class SerialTerminal extends javax.swing.JFrame {
             .addGroup(connect_JPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(connect_JPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(portList_JCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(buadRates_JCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(clear_JButton)
                     .addComponent(connect_JButton)
-                    .addComponent(clear_JButton))
+                    .addComponent(buadRates_JCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(portList_JCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
 
@@ -293,6 +302,7 @@ public class SerialTerminal extends javax.swing.JFrame {
         terminal_JPanel.setLayout(new java.awt.BorderLayout());
 
         input_JPass.setText("Type your message here...");
+        input_JPass.setEchoChar('\u0000');
         input_JPass.setEnabled(false);
         input_JPass.setPreferredSize(new java.awt.Dimension(134, 25));
         input_JPass.addFocusListener(new java.awt.event.FocusAdapter() {
@@ -343,10 +353,16 @@ public class SerialTerminal extends javax.swing.JFrame {
         });
 
         showSplit_JCheck.setText("Show Graph");
-        showSplit_JCheck.setEnabled(false);
         showSplit_JCheck.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 showSplit_JCheckActionPerformed(evt);
+            }
+        });
+
+        graphBuffer_JBtn.setText("Change Buffer Szie");
+        graphBuffer_JBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                graphBuffer_JBtnActionPerformed(evt);
             }
         });
 
@@ -359,23 +375,28 @@ public class SerialTerminal extends javax.swing.JFrame {
                 .addGroup(send_JPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(send_JPanelLayout.createSequentialGroup()
                         .addComponent(autoscroll_JCheck)
-                        .addGap(18, 18, 18)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(hideInput_JCheck)
-                        .addGap(18, 18, 18)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(showSplit_JCheck)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(graphBuffer_JBtn)
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addComponent(input_JPass, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(send_JPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(send_JButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(lineEnding_JCombo, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addGroup(send_JPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(send_JButton, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lineEnding_JCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
+
+        send_JPanelLayout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {lineEnding_JCombo, send_JButton});
+
         send_JPanelLayout.setVerticalGroup(
             send_JPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(send_JPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(send_JPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGroup(send_JPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(input_JPass, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(send_JButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -383,9 +404,12 @@ public class SerialTerminal extends javax.swing.JFrame {
                     .addComponent(lineEnding_JCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(autoscroll_JCheck)
                     .addComponent(hideInput_JCheck)
-                    .addComponent(showSplit_JCheck))
+                    .addComponent(showSplit_JCheck)
+                    .addComponent(graphBuffer_JBtn))
                 .addGap(6, 6, 6))
         );
+
+        send_JPanelLayout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {autoscroll_JCheck, graphBuffer_JBtn, hideInput_JCheck, input_JPass, lineEnding_JCombo, send_JButton, showSplit_JCheck});
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -393,14 +417,14 @@ public class SerialTerminal extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(terminal_JPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(send_JPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(connect_JPanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(connect_JPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addComponent(connect_JPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
-                .addComponent(terminal_JPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 221, Short.MAX_VALUE)
+                .addComponent(terminal_JPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 227, Short.MAX_VALUE)
                 .addGap(0, 0, 0)
                 .addComponent(send_JPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
@@ -409,24 +433,34 @@ public class SerialTerminal extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     public static boolean isInteger(String s, int radix) {
-    if(s.isEmpty()) return false;
-    for(int i = 0; i < s.length(); i++) {
-        if(i == 0 && s.charAt(i) == '-') {
-            if(s.length() == 1) return false;
-            else continue;
+        if (s != null) {
+            if (s.isEmpty()) {
+                return false;
+            }
+            for (int i = 0; i < s.length(); i++) {
+                if (i == 0 && s.charAt(i) == '-') {
+                    if (s.length() == 1) {
+                        return false;
+                    } else {
+                        continue;
+                    }
+                }
+                if (Character.digit(s.charAt(i), radix) < 0) {
+                    return false;
+                }
+            }
+            return true;
         }
-        if(Character.digit(s.charAt(i),radix) < 0) return false;
+        return false;
     }
-    return true;
-}
 
     // <editor-fold defaultstate="collapsed" desc="Connect Button and createConnection()">
     private void connect_JButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connect_JButtonActionPerformed
-        if(CONNECT.equals(connect_JButton.getText())){ //If there are no current connections
+        if (CONNECT.equals(connect_JButton.getText())) { //If there are no current connections
             String desiredPort = (String) portList_JCombo.getSelectedItem(); //Attempt to connect
             connectedPort = new SerialPort(desiredPort);                     //given the user's
             int baudRate = BAUD_RATES[buadRates_JCombo.getSelectedIndex()];  //input
-            if(createConnection(connectedPort, baudRate)){ //If the connection was successfull
+            if (createConnection(connectedPort, baudRate)) { //If the connection was successfull
                 buttonSetConnected();
                 connect_JButton.setText(DISCONNECT);
                 input_JPass.requestFocus();
@@ -440,16 +474,19 @@ public class SerialTerminal extends javax.swing.JFrame {
             } catch (SerialPortException ex) {
                 //Show the user there was an error disconnecting
                 JOptionPane.showMessageDialog(rootPane,
-                            "Error: Unable to disconnect from " + portList_JCombo.getSelectedItem(),
-                            "Unable to disconnect",
-                            JOptionPane.OK_OPTION,
-                            null);
+                        "Error: Unable to disconnect from " + portList_JCombo.getSelectedItem(),
+                        "Unable to disconnect",
+                        JOptionPane.ERROR_MESSAGE,
+                        null);
                 System.out.println(ex); //Print out the exception
             }
         }
     }//GEN-LAST:event_connect_JButtonActionPerformed
-    /** Will attempt to create a serial connection to the chosen port at the desired baud rate */
-    private boolean createConnection(SerialPort chosenPort, int baudRate){
+    /**
+     * Will attempt to create a serial connection to the chosen port at the
+     * desired baud rate
+     */
+    private boolean createConnection(SerialPort chosenPort, int baudRate) {
         try { //Attempt to open a port
             chosenPort.openPort(); //Open the port
             chosenPort.setParams(baudRate, //Set it's parameters
@@ -462,10 +499,10 @@ public class SerialTerminal extends javax.swing.JFrame {
             System.out.println(ex); //Print out the exception
             switch (ex.getExceptionType()) { //Display the reason as to why the connection failed
                 case SerialPortException.TYPE_PORT_BUSY:
-                    JOptionPane.showMessageDialog(rootPane, "Error: " + chosenPort.getPortName() + " is busy.", "Port Busy", JOptionPane.OK_OPTION, null);
+                    JOptionPane.showMessageDialog(rootPane, "Error: " + chosenPort.getPortName() + " is busy.", "Port Busy", JOptionPane.ERROR_MESSAGE, null);
                     break;
                 case SerialPortException.TYPE_PERMISSION_DENIED:
-                    JOptionPane.showMessageDialog(rootPane, "Error: Permission denied to" + chosenPort.getPortName(), "Permission Denied", JOptionPane.OK_OPTION, null);
+                    JOptionPane.showMessageDialog(rootPane, "Error: Permission denied to" + chosenPort.getPortName(), "Permission Denied", JOptionPane.ERROR_MESSAGE, null);
                     break;
             }
             return false; //Return that the connection failed
@@ -476,13 +513,14 @@ public class SerialTerminal extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Clear Button">
     private void clear_JButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clear_JButtonActionPerformed
         // TODO add your handling code here:
-        if(!terminalLog.isEmpty())
-            if(JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(rootPane, "Are you sure you want to clear the terminal log?",
+        if (!terminalLog.isEmpty()) {
+            if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(rootPane, "Are you sure you want to clear the terminal log?",
                     "Clear entries?",
-                    JOptionPane.YES_NO_OPTION)){
+                    JOptionPane.YES_NO_OPTION)) {
                 terminalLog.clearText();
                 dataChart.clear();
             }
+        }
     }//GEN-LAST:event_clear_JButtonActionPerformed
     // </editor-fold>
 
@@ -495,22 +533,26 @@ public class SerialTerminal extends javax.swing.JFrame {
         passInput();
     }//GEN-LAST:event_input_JPassActionPerformed
 
-    /** Default function to be called when attempting to pass user input to connected device */
+    /**
+     * Default function to be called when attempting to pass user input to
+     * connected device
+     */
     private void passInput() {
         updateAutoscroll();
         String strToSee = String.valueOf(input_JPass.getPassword());
         String strToSend = strToSee;
-        if(strToSee.equals("") && (lineEnding_JCombo.getSelectedIndex() == 0)){
+        if (strToSee.equals("") && (lineEnding_JCombo.getSelectedIndex() == 0)) {
             //Prompt about sending an empty string
-            if(JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(rootPane, "You've entered nothing. Would you like to select a line ending?",
+            if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(rootPane, "You've entered nothing. Would you like to select a line ending?",
                     "Nothing entered",
-                    JOptionPane.YES_NO_OPTION)){
+                    JOptionPane.YES_NO_OPTION)) {
                 lineEnding_JCombo.requestFocus();
                 lineEnding_JCombo.showPopup();
             }
         } else {
-            if(strToSee.equals(""))
-                strToSee = (String)lineEnding_JCombo.getSelectedItem();
+            if (strToSee.equals("")) {
+                strToSee = (String) lineEnding_JCombo.getSelectedItem();
+            }
             input_JPass.setText("");
             int lineEndingChoice = lineEnding_JCombo.getSelectedIndex();
             switch (lineEndingChoice) {
@@ -526,12 +568,12 @@ public class SerialTerminal extends javax.swing.JFrame {
                     strToSend += "\r\n";
                     break;
             }
-            if(connectedPort.isOpened()){
+            if (connectedPort.isOpened()) {
                 try {
                     connectedPort.writeString(strToSend);
-                    if(hideInput_JCheck.isSelected()){
+                    if (hideInput_JCheck.isSelected()) {
                         String replacement = "";
-                        for(int i = 0; i < strToSee.length(); i++){
+                        for (int i = 0; i < strToSee.length(); i++) {
                             replacement += ECHO_CHAR;
                         }
                         strToSee = replacement;
@@ -555,10 +597,10 @@ public class SerialTerminal extends javax.swing.JFrame {
     }//GEN-LAST:event_input_JPassFocusGained
 
     private void hideInput_JCheckActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_hideInput_JCheckActionPerformed
-        if(hideInput_JCheck.isSelected()){
+        if (hideInput_JCheck.isSelected()) {
             input_JPass.setEchoChar(ECHO_CHAR);
         } else {
-            input_JPass.setEchoChar((char)0);
+            input_JPass.setEchoChar((char) 0);
         }
         input_JPass.requestFocus();
     }//GEN-LAST:event_hideInput_JCheckActionPerformed
@@ -570,19 +612,16 @@ public class SerialTerminal extends javax.swing.JFrame {
     }//GEN-LAST:event_autoscroll_JCheckActionPerformed
 
     private void terminal_JPanelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_terminal_JPanelMouseClicked
-        if(DISCONNECT.equals(connect_JButton.getText()))
-        updateAutoscroll();
+        if (DISCONNECT.equals(connect_JButton.getText())) {
+            updateAutoscroll();
+        }
     }//GEN-LAST:event_terminal_JPanelMouseClicked
-
-    private void terminal_JPanelFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_terminal_JPanelFocusLost
-        updateAutoscroll();
-    }//GEN-LAST:event_terminal_JPanelFocusLost
 
     private void lineEnding_JComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lineEnding_JComboActionPerformed
         input_JPass.requestFocus();
     }//GEN-LAST:event_lineEnding_JComboActionPerformed
 
-   private void updateAutoscroll() {
+    private void updateAutoscroll() {
         terminalLog.setAutoscroll(autoscroll_JCheck.isSelected());
     }
     //</editor-fold>
@@ -591,7 +630,7 @@ public class SerialTerminal extends javax.swing.JFrame {
         terminal_JPanel.removeAll();
         //Create the split view terminal for possible usage
         SplitTerminal splitView = new SplitTerminal(terminalLog, dataChart, true);
-        if(showSplit_JCheck.isSelected()) {
+        if (showSplit_JCheck.isSelected()) {
             terminal_JPanel.add(splitView, BorderLayout.CENTER);
         } else {
             terminal_JPanel.add(terminalLog, BorderLayout.CENTER);
@@ -600,8 +639,27 @@ public class SerialTerminal extends javax.swing.JFrame {
         terminal_JPanel.repaint();
     }//GEN-LAST:event_showSplit_JCheckActionPerformed
 
+    private void terminal_JPanelFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_terminal_JPanelFocusLost
+        updateAutoscroll();
+    }//GEN-LAST:event_terminal_JPanelFocusLost
+
+    private void graphBuffer_JBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_graphBuffer_JBtnActionPerformed
+        int newBufferSize;
+        String input = JOptionPane.showInputDialog(rootPane, "Input a new integer buffer size for the graph.\nDefault: " + MAX_GRAPH_POINTS, "Input new buffer size.", JOptionPane.QUESTION_MESSAGE);
+        if (isInteger(input, 10)) {
+            newBufferSize = Integer.parseInt(input);
+            dataChart.updateBufferSize(newBufferSize);
+        } else {
+            JOptionPane.showMessageDialog(rootPane, input + " is not an integer!", "Non-Integer value!", JOptionPane.ERROR_MESSAGE);
+        }
+
+    }//GEN-LAST:event_graphBuffer_JBtnActionPerformed
+
     //<editor-fold defaultstate="collapsed" desc="Button States">
-    /** Changes the state of all buttons, except clear, which shall always be enabled */
+    /**
+     * Changes the state of all buttons, except clear, which shall always be
+     * enabled
+     */
     private void enableInterface(boolean newState) {
         portList_JCombo.setEnabled(newState);
         buadRates_JCombo.setEnabled(newState);
@@ -610,11 +668,14 @@ public class SerialTerminal extends javax.swing.JFrame {
         input_JPass.setEnabled(newState);
         autoscroll_JCheck.setEnabled(newState);
         hideInput_JCheck.setEnabled(newState);
-        showSplit_JCheck.setEnabled(newState);
+        showSplit_JCheck.setEnabled(true);
         send_JButton.setEnabled(newState);
         lineEnding_JCombo.setEnabled(newState);
     }
-    /** Default button states for when connections are available */
+
+    /**
+     * Default button states for when connections are available
+     */
     private void buttonSetAvailableConnections() {
         portList_JCombo.setEnabled(true);
         buadRates_JCombo.setEnabled(true);
@@ -622,12 +683,14 @@ public class SerialTerminal extends javax.swing.JFrame {
         input_JPass.setEnabled(false);
         autoscroll_JCheck.setEnabled(false);
         hideInput_JCheck.setEnabled(false);
-        showSplit_JCheck.setEnabled(false);
+        showSplit_JCheck.setEnabled(true);
         send_JButton.setEnabled(false);
         lineEnding_JCombo.setEnabled(false);
     }
 
-    /** Default button states for when connected to a device */
+    /**
+     * Default button states for when connected to a device
+     */
     private void buttonSetConnected() {
         portList_JCombo.setEnabled(false);
         buadRates_JCombo.setEnabled(false);
@@ -675,6 +738,7 @@ public class SerialTerminal extends javax.swing.JFrame {
     private javax.swing.JButton clear_JButton;
     private javax.swing.JButton connect_JButton;
     private javax.swing.JPanel connect_JPanel;
+    private javax.swing.JButton graphBuffer_JBtn;
     private javax.swing.JCheckBox hideInput_JCheck;
     private javax.swing.JPasswordField input_JPass;
     private javax.swing.JComboBox lineEnding_JCombo;
