@@ -1,21 +1,28 @@
+/*
+  EEPROM block setup:
+  0,        1,                                           ? - 511;
+  endState, period, **Space for more variable storage**, password(stored backwards dynamically);
+*/
+#include <EEPROM.h>
 #define LED 13
+#define MAX_PROM 511
 
 //commands
 const char* CMD_LIST[]     = {"Update", "Blink", "Strobe", "Lock"};
 const char* UPDATE_LIST[]  = {"Period", "Password"};
-const int CMD_LIST_SIZE    = 5; //Maintain manually. Value is one grerater than the number of items in the array. sizeOff() does not work on char* [] 
-const int UPDATE_LIST_SIZE = 3; //Maintain manually. Value is one grerater than the number of items in the array. sizeOff() does not work on char* [] 
+const int CMD_LIST_SIZE    = 5; //Maintain manually. Value is one grerater than the number of items in the array. sizeOf() does not work on char* []
+const int UPDATE_LIST_SIZE = 3; //Maintain manually. Value is one grerater than the number of items in the array. sizeOf() does not work on char* []
 
 //directions for fadeLoop()
 const boolean IN_OUT = true;
 const boolean OUT_IN = !IN_OUT;
-
-String password = "123abc";
+//Global variable initializations
+String password = "";
 int passwordAttempts = 5;
 
-byte index = 0;
+int endState = 0;
 int ledValue = 0;
-int period = 2000;
+int period = 0;
 int temp = 0;
 long startTime = 0;
 long sysTime = 0;
@@ -25,6 +32,19 @@ boolean foundCmd = false;
 
 
 void setup() {
+
+  endState = EEPROM.read(0);
+  period = (10 * EEPROM.read(1));
+
+  char input = '\0';
+  int address = MAX_PROM;
+
+  input = EEPROM.read(address--);
+  while (input != NULL){
+    password += input;
+    input = EEPROM.read(address--);
+  }
+
   pinMode(LED, OUTPUT);
   analogWrite(LED, 255);
   Serial.begin(9600);
@@ -37,7 +57,7 @@ void setup() {
 }
 
 void loop() {
-  
+
   Serial.println("Selct an action to perform:");
   for(int x = 1; x < CMD_LIST_SIZE; x++){
     Serial.print(x);
@@ -92,6 +112,8 @@ void loop() {
 }
 
 void checkPassword(String password, int numTries){
+  if(password == "")
+    passwordFailed();
   String passIn = "";
   waitForInput("Please enter your password", 10000);
   passIn = Serial.readString();
@@ -114,16 +136,22 @@ void checkPassword(String password, int numTries){
     if(passIn == password){
       Serial.println("Password correct");
     } else {
-      while(true){
-        Serial.println("You didn't say the magic word");
-      }
+      passwordFailed();
     }
+  }
+}
+
+void passwordFailed(){
+  for(int ad = 0; ad < MAX_PROM; ad++){
+    EEPROM.write(ad, '\0');
+  }
+  while(true){
+    Serial.println("You didn't say the magic word");
   }
 }
 
 void updateTask(){
   Serial.println("Select variable to update:");
-  Serial.println("\nAll changes will only last as the board is powered!");
   for(int x = 1; x < UPDATE_LIST_SIZE; x++){
     Serial.print(x);
     Serial.print(": ");
@@ -146,7 +174,7 @@ void updateTask(){
       newPeriod = Serial.parseInt();
       if(newPeriod > 0 && newPeriod <= 10000){
         period = newPeriod;
-        Serial.println("Period = 2000");
+        EEPROM.write(MAX_PROM - 1, (period / 10));
       } else {
         Serial.print(newPeriod);
         Serial.println(" is not an acceptable value.");
@@ -155,10 +183,26 @@ void updateTask(){
     //Password
     case 2:
       waitForInput();
-      password = Serial.readString();
+      String newPass = Serial.readString();
+      newPass.trim();
+      updatePassword(password.length(), newPass);
       Serial.println("Password successfully updated.");
       break;
     }
+}
+
+void updatePassword(int oldPassLength, String newPassword){
+  //Clear old password
+  for(int n = 0; n < oldPassLength; n++){
+    EEPROM.write(MAX_PROM - n, '\0');
+  }
+  //Write in new one
+  int a = MAX_PROM;
+  int b = 0;
+  while(newPassword.charAt(b) != NULL){
+    EEPROM.write(a--, newPassword.charAt(b++));
+  }
+  password = newPassword;
 }
 
 void waitForInput(){
