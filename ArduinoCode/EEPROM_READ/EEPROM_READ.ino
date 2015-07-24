@@ -1,17 +1,23 @@
 #include <EEPROM.h>
-#define PASSWORD_START 0
-#define PASSWORD_END 20
-
 void setup(){
-  char password[] = "123456";
-  int i = 511;
-  int j = 0;
-  while(password[j] != '\0'){
-    EEPROM.write(i--, password[j++]);
+
+  String password = "";
+
+  char input = '\0';
+  int address = 511;
+  input = EEPROM.read(address--);
+  while (input != '\0'){
+    password += input;
+    input = EEPROM.read(address--);
   }
-  EEPROM.write(i, '\0');
-  EEPROM.write(0, 0);
-  EEPROM.write(1, 200);
+
+  Serial.begin(9600);
+  while (!Serial){
+    ;
+  }
+  Serial.println(password);
+  Serial.println(EEPROM.read(0));
+  Serial.println(EEPROM.read(1));
 }
 
 void loop(){

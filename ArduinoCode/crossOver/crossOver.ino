@@ -6,6 +6,7 @@
 #include <EEPROM.h>
 #define LED 13
 #define MAX_PROM 511
+#define wipedByte 255
 
 //commands
 const char* CMD_LIST[]     = {"Update", "Blink", "Strobe", "Lock"};
@@ -40,7 +41,7 @@ void setup() {
   int address = MAX_PROM;
 
   input = EEPROM.read(address--);
-  while (input != NULL){
+  while (input != wipedByte){
     password += input;
     input = EEPROM.read(address--);
   }
@@ -51,6 +52,9 @@ void setup() {
   Serial.setTimeout(1);
   while (!Serial){
     fadeLoop(LED, IN_OUT);
+  }
+  if(isWiped()){
+    passwordFailed();
   }
   Serial.println("Serial connected successfully");
   checkPassword(password, passwordAttempts);
@@ -99,6 +103,9 @@ void loop() {
           Serial.println("Blinking untill further notice.");
           while(Serial.available() == 0)
             fadeLoop(LED, IN_OUT);
+          while(Serial.available() > 0){
+            Serial.read();
+          }
         } else {
           Serial.print(cycles);
           Serial.println(" is not an acceptable number of cycles");
@@ -109,6 +116,17 @@ void loop() {
         checkPassword(password, passwordAttempts);
     }
   }
+}
+
+boolean isWiped(){
+  for(int ad = 0; ad < MAX_PROM; ad++){
+    if(EEPROM.read(ad) != wipedByte){
+      Serial.println("Not wiped");
+      return false;
+    }
+  }
+  Serial.println("Wiped");
+  return true;
 }
 
 void checkPassword(String password, int numTries){
@@ -143,7 +161,7 @@ void checkPassword(String password, int numTries){
 
 void passwordFailed(){
   for(int ad = 0; ad < MAX_PROM; ad++){
-    EEPROM.write(ad, '\0');
+    EEPROM.write(ad, wipedByte);
   }
   while(true){
     Serial.println("You didn't say the magic word");
@@ -199,7 +217,7 @@ void updatePassword(int oldPassLength, String newPassword){
   //Write in new one
   int a = MAX_PROM;
   int b = 0;
-  while(newPassword.charAt(b) != NULL){
+  while(newPassword.charAt(b) != wipedByte){
     EEPROM.write(a--, newPassword.charAt(b++));
   }
   password = newPassword;

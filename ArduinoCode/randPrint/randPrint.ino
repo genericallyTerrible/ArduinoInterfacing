@@ -15,4 +15,7 @@ void loop() {
   randInt = random(10);
   Serial.println(randInt);
   delay(delayTime);
+  if(Serial.available() > 0){
+    Serial.read();
+  }
 }

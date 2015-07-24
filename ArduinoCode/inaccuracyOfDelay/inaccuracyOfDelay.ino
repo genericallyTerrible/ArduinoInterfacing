@@ -1,5 +1,13 @@
 #define LED 13
 const int delayTime = 1000;
+int thisTime = 0;
+int lastTime = 0;
+int difference = 0;
+int drift = 0;
+String difDir = "";
+String output = "";
+String driftStr = "";
+
 void setup() {
   pinMode(LED, OUTPUT);
   digitalWrite(LED, LOW);
@@ -8,28 +16,30 @@ void setup() {
     ;//Wait for serial connection; Needed only for Leonardo
   }
   Serial.println("Serial connected successfully");
+  thisTime = millis() - delayTime;
 }
-int thisTime = 0;
-int lastTime = 0;
-int difference = 0;
-String difDir = "";
-String output = "";
+
 void loop() {
   lastTime = thisTime;
   thisTime = millis();
   difference = thisTime - (lastTime + delayTime);
   Serial.print(millis());
   if(difference != 0){
+    drift += difference;
     if(difference > 0){
       difDir = "Gained";
     } else {
       difDir = "Lost";
+      difference *= -1;
     }
     output = ": " + difDir + " " + difference + " miliseconds";
   } else {
     output = ": No time gained or lost";
   }
-  Serial.println(output);
+  driftStr = " Overall drift of: ";
+  driftStr += drift;
+  Serial.print(output);
+  Serial.println(driftStr);
   delay(delayTime);
 }
 
